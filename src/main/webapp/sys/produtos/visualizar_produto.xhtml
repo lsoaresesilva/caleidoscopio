@@ -1,0 +1,43 @@
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+        <p:dialog header="Informações do produto" widgetVar="produtoDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                <h:form id="dialogProdutosDetalhes">
+                <p:outputPanel id="detalhesProduto" style="text-align:center;" >
+                    <p:tabView>
+                        <p:tab title="Detalhamento">
+                            
+                                <p:panelGrid columns="2" >
+                                    
+                                    <h:outputLabel value="Código"/>
+                                    <h:inputText value="#{produtoController.produto.codigo}" />
+                                    <h:outputLabel value="Descrição"/>
+                                    <h:inputText value="#{produtoController.produto.descricao}" />
+                                    <h:outputLabel value="Quantidade em estoque"/>
+                                    <h:inputText value="#{produtoController.produto.quantidadeEstoque}" />
+                                    <p:commandButton value="Salvar" actionListener="#{produtoController.salvarOuAtualizar()}" oncomplete="PF('produtoDialog').hide()" ajax="false"/>
+                                </p:panelGrid>
+                            
+                        </p:tab>
+                        <p:tab title="Vendas">
+                            <p:dataTable id="vendasComProduto" 
+                                                 var="vendaProduto" 
+                                                 value="#{vendaController.listarVendasPorProduto(produtoController.produto)}" 
+                                                 scrollable="true">
+                                <p:column headerText="Data">
+                                    <h:outputLabel value="#{vendaProduto.dataFormatada}" />
+                                </p:column>
+                                <p:column headerText="Forma de pagamento">
+                                    <h:outputLabel value="#{vendaProduto.formaPagamento.recuperarString()}" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>
+                </p:outputPanel>
+                    </h:form>
+            </p:dialog> 
+</ui:composition>
+

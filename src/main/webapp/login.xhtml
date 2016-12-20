@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Facelet Title</title>
+        <style>
+            .centered {
+                position: absolute;
+                height: 100px;
+                top: 0;
+                bottom: 0;
+                margin:auto;
+                left:50%;margin-left:-100px;width:200px;
+            }
+            
+        </style>
+    </h:head>
+    <h:body>
+        
+        <h:form>
+            
+            <p:panelGrid columns="1"  styleClass="centered">
+                <p:growl id="growl" showDetail="true" sticky="true" />  
+                <h:outputLabel value="E-mail"/>
+                <p:inputText id="email" value="${loginController.usuario.email}" required="true" requiredMessage="É preciso informar o login."/>
+                <h:outputLabel value="Senha"/>
+                <p:inputText id="senha" value="${loginController.usuario.senha}" type="password" required="true" requiredMessage="É preciso informar a senha."/>
+                <p:commandButton value="Entrar" action="#{loginController.fazerLogin()}" update="growl"/>
+            </p:panelGrid>
+            
+        </h:form>
+    </h:body>
+</html>
+

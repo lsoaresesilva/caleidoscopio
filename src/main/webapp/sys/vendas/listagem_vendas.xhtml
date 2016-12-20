@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <ui:include src="../menu.xhtml"/>
+        <p:panel>
+            <h:form id="listagemVendas">
+                <p:outputLabel for="popup" value="Data" />
+                <p:calendar showButtonPanel="true" id="popup" value="#{vendaController.dataPesquisa}" showTodayButton="true" widgetVar="dataPesquisada">
+                    <p:ajax event="dateSelect" listener="#{vendaController.atualizarDataSelecionada}" update=":listagemVendas:vendasRealizadas"/>
+                </p:calendar>
+               
+                <p:dataTable id="vendasRealizadas" var="venda" 
+                             value="#{vendaController.listarVendasPorData()}" 
+                             rows="10"
+                             emptyMessage="Nenhuma venda cadastrada"
+                             sortBy="#{venda.dataCriacao}"
+                             paginator="true"
+                             rowKey="#{venda.id}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="25,50,100">
+                    <p:column headerText="Data">
+                        <h:outputLabel value="#{venda.getDataFormatada()}" />
+                    </p:column>
+                    <p:column headerText="Valor total">
+                        <h:outputLabel value="#{venda.calcularValorTotalComDesconto()}" />
+                    </p:column>
+                    <p:column headerText="Forma de pagamento">
+                        <h:outputLabel value="#{venda.formaPagamento.recuperarString()}" />
+                    </p:column>
+                    <p:column style="width:32px;text-align: center">
+                        <p:commandButton update=":dialogVendasDetalhes:detalhesVendas" oncomplete="PF('vendaDialog').show()" icon="ui-icon-search" title="Visualizar">
+                            <f:setPropertyActionListener value="#{venda}" target="#{vendaController.venda}" />
+                            <f:setPropertyActionListener value="#{venda.dataCriacao}" target="#{vendaController.venda.dataCriacao}" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:summaryRow>
+                        <p:column colspan="2" style="text-align:right">
+                            <h:outputText value="Total:" />
+                        </p:column>
+                        <p:column>
+                            <h:outputText value="#{vendaController.venda.calcularValorTotalData(venda.dataCriacao)}">
+                                <f:convertNumber type="currency" currencySymbol="R$" />
+                            </h:outputText>
+                        </p:column>
+                    </p:summaryRow>
+
+                </p:dataTable>
+            </h:form>
+            <p:dialog header="Informações da venda" widgetVar="vendaDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+                <h:form id="dialogVendasDetalhes">
+                <p:outputPanel id="detalhesVendas" style="text-align:center;" >
+                                <p:panelGrid columns="2" >
+                                    <h:outputLabel value="Data"/>
+                                    <h:outputLabel value="#{vendaController.venda.dataFormatada}" />
+                                    <h:outputLabel value="Produtos"/>
+                                    <p:dataTable id="produtosVendidos" 
+                                                 var="vendaProduto" 
+                                                 value="#{produtoController.listarProdutosPorVenda(vendaController.venda)}" 
+                                                 scrollable="true">
+                                        <p:column headerText="Descrição">
+                                            <h:outputLabel value="#{vendaProduto.produto.descricao}" />
+                                        </p:column>
+                                        <p:column headerText="Quantidade">
+                                            <h:outputLabel value="#{vendaProduto.quantidadeCompra}" />
+                                        </p:column>
+                                        
+                                    </p:dataTable>
+                                    <h:outputLabel value="Forma de pagamento" />
+                                    <h:outputLabel value="#{vendaController.venda.formaPagamento.recuperarString()}" />
+                                        
+                                    <p:commandButton value="Fechar" onclick="PF('produtoDialog').hide()" ajax="false"/>
+                                </p:panelGrid>
+                            
+                        
+                    
+                </p:outputPanel>
+                    </h:form>
+            </p:dialog> 
+        </p:panel>
+    </h:body>
+</html>
+

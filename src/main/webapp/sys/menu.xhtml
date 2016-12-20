@@ -1,0 +1,29 @@
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+    <h:form>
+        <p:menubar>
+            <p:submenu label="Vendas"  icon="ui-icon-document">
+                <p:menuitem value="Nova" action="/sys/vendas/nova_venda" />
+                <p:menuitem value="Listar" action="/sys/vendas/listagem_vendas" />
+            </p:submenu>
+            <p:submenu label="Produtos">
+                <p:menuitem value="Listar" action="/sys/produtos/listagem_produtos" />
+            </p:submenu>
+            <p:submenu label="Relatórios"  icon="ui-icon-document">
+                <p:menuitem value="Comissões" action="/sys/relatorios/comissoes" />
+            </p:submenu>
+            <p:submenu label="NFE"  icon="ui-icon-document">
+                <p:menuitem value="Cadastrar" action="/sys/nfe/enviar_nfe" />
+                <f:facet name="options">
+                    <p:outputLabel style="margin-right:10px" value="Olá #{usuarioLogado.email}"/>
+                    <p:commandButton type="button" value="Sair" icon="ui-icon-extlink" />
+                </f:facet>
+            </p:submenu>
+        </p:menubar>
+    </h:form>
+</ui:composition>
+

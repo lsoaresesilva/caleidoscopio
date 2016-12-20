@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        
+        <ui:include src="../menu.xhtml" />
+        <p:panel>
+            <h:form id="produtosCadastradosForm">
+                <p:panel id="operacoesProdutos">
+                <p:commandButton value="Inserir" update=":dialogProdutosDetalhes:detalhesProduto" oncomplete="PF('produtoDialog').show()" />
+                </p:panel>
+                <p:dataTable id="produtosCadastrados" var="produto" 
+                             value="#{produtoController.listarProdutos()}" 
+                             widgetVar="produtosWidget"
+                             rows="10"
+                             emptyMessage="Nenhum produto localizado."
+                             sortBy="#{produto.descricao}"
+                             paginator="true"
+                             rowKey="#{produto.id}"
+                             
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="25,50,100"
+                             filteredValue="#{produtoController.filteredProducts}"
+                             >
+                    <f:facet name="header">
+                        <p:outputPanel>
+                            <h:outputText value="Search all fields:" />
+                            <p:inputText id="globalFilter" onkeyup="PF('produtosWidget').filter()" style="width:150px" placeholder="Enter keyword"/>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="Descrição" filterBy="#{produto.descricao}">
+                        <h:outputText value="#{produto.descricao}" />
+                    </p:column>
+                    <p:column headerText="Fornecedor" filterBy="#{produto.fornecedor.nome}" filterMatchMode="contains">
+                        <h:outputText value="#{produto.fornecedor.nome}" />
+                    </p:column>
+
+                    <p:column headerText="Valor">
+                        <h:outputText value="#{produto.valorUnitarioVenda}" />
+                    </p:column>
+                    <p:column filterBy="#{produto.quantidadeEstoque}" headerText="Estoque" filterFunction="#{produtoController.filtrarPorEstoque}">
+                        <f:facet name="filter">
+                            <p:selectOneMenu title="Selecione o estoque" value="#{produtoController.valorSelecionadoEstoque}" widgetVar="valorEstoqueSelecionado" label="Selecione um valor" onchange="PF('produtosWidget').filter()" panelStyle="width:125px" >
+                                <f:selectItems value="#{produtoController.valoresEstoque}" />
+                            </p:selectOneMenu>
+                        </f:facet>
+                        <h:outputText value="#{produto.quantidadeEstoque}" />
+                    </p:column>
+                    <p:column style="width:32px;text-align: center">
+                        <p:commandButton update=":dialogProdutosDetalhes:detalhesProduto" oncomplete="PF('produtoDialog').show()" icon="ui-icon-search" title="Visualizar">
+                            <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+
+            <ui:include src="visualizar_produto.xhtml" />
+        </p:panel>
+        
+    </h:body>
+</html>
+

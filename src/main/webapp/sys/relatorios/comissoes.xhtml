@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <ui:include src="../menu.xhtml"/>
+        <p:panel>
+            <h:form>
+                <p:panelGrid columns="2">
+                    <h:outputLabel value="Data início" />
+                    <p:calendar id="dataInicio" value="#{relatorioController.comissaoVendedor.dataInicio}" mode="inline" navigator="true" />
+                    <h:outputLabel value="Data término" />
+                    <p:calendar id="dataTermino" value="#{relatorioController.comissaoVendedor.dataTermino}" mode="inline" navigator="true" />
+                    <h:outputLabel value="Vendedor"/>
+                    <p:autoComplete id="acVendedor" 
+                                    value="#{relatorioController.comissaoVendedor.usuarioComissao}" 
+                                    itemValue="#{vendedorComissao}" 
+                                    var="vendedorComissao" 
+                                    itemLabel="#{vendedorComissao.getNome()}" 
+                                    converter="usuarioConverter" 
+                                    completeMethod="#{usuarioController.filtrarPorNome}" 
+                                    required="true" 
+                                    requiredMessage="É preciso informar o vendedor."/>
+                    <h:outputLabel value="Percentual de comissão" />
+                    <p:inputNumber value="#{relatorioController.comissaoVendedor.percentualComissao}" />
+                    <p:commandButton value="Calcular" update=":valorComissaoVendedor" actionListener="#{relatorioController.calcularComissao}" />
+
+
+                </p:panelGrid>
+            </h:form>
+            <p:separator/>
+            <p:panelGrid columns="2">
+                <h:outputLabel value="Valor da comissão"/>
+                <h:outputLabel id="valorComissaoVendedor" value="#{relatorioController.comissaoVendedor.valorComissao}" />
+            </p:panelGrid>
+        </p:panel>
+    </h:body>
+</html>
+
