@@ -29,6 +29,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NoResultException;
+
 import javax.persistence.OneToMany;
 import javax.persistence.Query;
 import javax.persistence.Transient;
@@ -40,6 +42,7 @@ import static model.FormaPagamento.CREDITOPARCELADO;
 import static model.FormaPagamento.DEBITO;
 import static model.FormaPagamento.DINHEIRO;
 import org.hibernate.HibernateException;
+import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -53,7 +56,8 @@ import persistencia.Model;
  * @author macbookair
  */
 @Entity
-public class Produto extends Model implements Serializable{
+public class Produto extends Model implements Serializable {
+
     /*@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;*/
@@ -69,24 +73,27 @@ public class Produto extends Model implements Serializable{
     private double aliquotaIPI;
     @Expose
     private double valorUnitarioVenda;
-    public static enum VALORES_POSSIVEIS_ESTOQUE { 
-    
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "categoria_id") 
+    private CategoriaProduto categoria;
+
+    public static enum VALORES_POSSIVEIS_ESTOQUE {
+
         TODOS("Todos"), POSITIVO("Positivo"), ZERADO("Zerado ou negativo");
-        
+
         private final String label;
 
         private VALORES_POSSIVEIS_ESTOQUE(String label) {
-          this.label = label;
+            this.label = label;
         }
 
         public String getLabel() {
-          return this.label;
+            return this.label;
         }
     };
 
-    
-    @ManyToOne(cascade=CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name="fornecedor_id")
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "fornecedor_id")
     private Fornecedor fornecedor;
     @Transient
     private NotaFiscal nfe; // tirar o Transient e fazer o relacionamento
@@ -95,25 +102,25 @@ public class Produto extends Model implements Serializable{
     @Transient
     public double margemContribuicao;
     // Despesas variáveis da venda
-    
+
     public static double SIMPLES = 4;
-    
+
     public static double TAXA_CARTAO = 4;
-    
+
     public static double COMISSAO_VENDAS = 2;
-    
+
     public static double TAXAS_ADICIONAIS = 10;
-    
+
     public static double VALOR_SACOLAS = 2;
-    
+
     public static double DESPESAS_FIXAS = 40;
-    
+
     public static int MARGEM_CONTRIBUICAO_DESEJADA = 27;
-    
 
     public Produto() {
         super();
         super.setNomeTabela("Produto");
+        categoria = new CategoriaProduto();
     }
 
     public Produto(String codigo, String descricao, long ncm, int cfog, int quantidade, double valorUnitario, long aliquotaICMS, long aliquotaIPI) {
@@ -129,144 +136,40 @@ public class Produto extends Model implements Serializable{
         this.aliquotaIPI = aliquotaIPI;
         this.margemLucro = 20;
     }
-    
-    public static ArrayList<Produto> extrairProdutosNfe(InputStream is, NotaFiscal nfe){
-        
+
+    public static ArrayList<Produto> extrairProdutosNfe(InputStream is, NotaFiscal nfe) {
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder;
-        
+
         try {
             builder = factory.newDocumentBuilder();
 
             Document doc = builder.parse(is);
             ArrayList<Produto> produtosNfe = new ArrayList<Produto>();
-            
-            
+
             NodeList emitNode = doc.getElementsByTagName("emit");
-            Element emitElement = (Element)emitNode.item(0);
+            Element emitElement = (Element) emitNode.item(0);
             NodeList xNomeNode = emitElement.getElementsByTagName("xNome");
             String nomeFornecedor = xNomeNode.item(0).getTextContent();
             NodeList cnpjNode = emitElement.getElementsByTagName("CNPJ");
             String cnpjFornecedor = cnpjNode.item(0).getTextContent();
             Fornecedor fornecedor = new Fornecedor(nomeFornecedor, cnpjFornecedor);
-            
+
             NodeList detalhamentoProdutoNode = doc.getElementsByTagName("det");
             //NodeList nos = nfeProc.getChildNodes();
-            for(int i = 0; i < detalhamentoProdutoNode.getLength(); i++){
-                Element detalheElement = (Element)detalhamentoProdutoNode.item(i);
-                // Especificação do imposto ICMS
-                NodeList impostoNode = detalheElement.getElementsByTagName("imposto");
-                Element impostoElement = (Element)impostoNode.item(0);
-                
-                Element icmsElement = (Element)impostoElement.getElementsByTagName("ICMS").item(0);
-                
-                
-                Element icms00 = (Element)icmsElement.getElementsByTagName("ICMS00").item(0);
-                Element icms10 = (Element)icmsElement.getElementsByTagName("ICMS10").item(0);
-                Element icms20 = (Element)icmsElement.getElementsByTagName("ICMS20").item(0);
-                Element icms30 = (Element)icmsElement.getElementsByTagName("ICMS30").item(0);
-                Element icms40 = (Element)icmsElement.getElementsByTagName("ICMS40").item(0);
-                Element icms41 = (Element)icmsElement.getElementsByTagName("ICMS41").item(0);
-                Element icms50 = (Element)icmsElement.getElementsByTagName("ICMS50").item(0);
-                Element icms51 = (Element)icmsElement.getElementsByTagName("ICMS51").item(0);
-                Element icms60 = (Element)icmsElement.getElementsByTagName("ICMS60").item(0);
-                Element icms70 = (Element)icmsElement.getElementsByTagName("ICMS70").item(0);
-                Element icms90 = (Element)icmsElement.getElementsByTagName("ICMS90").item(0);
-                
-                Element icmssn101 = (Element)icmsElement.getElementsByTagName("ICMSSN101").item(0);
-                
-                Element icmssn102 = (Element)icmsElement.getElementsByTagName("ICMSSN102").item(0);
-                Element icmssn103 = (Element)icmsElement.getElementsByTagName("ICMSSN103").item(0);
-                Element icmssn300 = (Element)icmsElement.getElementsByTagName("ICMSSN300").item(0);
-                Element icmssn400 = (Element)icmsElement.getElementsByTagName("ICMSSN400").item(0);
-                
-                Element icmssn201 = (Element)icmsElement.getElementsByTagName("ICMSSN201").item(0);
-                Element icmssn202 = (Element)icmsElement.getElementsByTagName("ICMSSN202").item(0);
-                Element icmssn203 = (Element)icmsElement.getElementsByTagName("ICMSSN203").item(0);
-                Element icmssn500 = (Element)icmsElement.getElementsByTagName("ICMSSN500").item(0);
-                
-                Element icmssn900 = (Element)icmsElement.getElementsByTagName("ICMSSN900").item(0);
-                
-                Element icms = null;
-                
-                if(icms00 != null){
-                    icms = icms00;
-                }else if(icmssn101 != null){
-                    icms = icmssn101;
-                }else if(icms10 != null){
-                    icms = icms10;
-                }else if(icms20 != null){
-                    icms = icms20;
-                }else if(icms30 != null){
-                    icms = icms30;
-                }else if(icms40 != null){
-                    icms = icms40;
-                }else if(icms41 != null){
-                    icms = icms41;
-                }else if(icms50 != null){
-                    icms = icms50;
-                }else if(icms51 != null){
-                    icms = icms51;
-                }else if(icms70 != null){
-                    icms = icms70;
-                }else if(icms90 != null){
-                    icms = icms90;
-                }else if(icmssn101 != null){
-                    icms = icmssn101;
-                }else if(icmssn102 != null){
-                    icms = icmssn102;
-                }else if(icmssn103 != null){
-                    icms = icmssn103;
-                }else if(icmssn300 != null){
-                    icms = icmssn300;
-                }else if(icmssn400 != null){
-                    icms = icmssn400;
-                }else if(icmssn201 != null){
-                    icms = icmssn201;
-                }else if(icmssn202 != null){
-                    icms = icmssn202;
-                }else if(icmssn203 != null){
-                    icms = icmssn203;
-                }else if(icmssn500 != null){
-                    icms = icmssn500;
-                }else if(icmssn900 != null){
-                    icms = icmssn900;
-                }
-                
-                Double valorICMSProduto = 0.0;
-                Double valorIPIProduto = 0.0;
-                
-                NodeList percentualICMS = icms.getElementsByTagName("pICMS");
-                
-                Element percentualIcmsElement = (Element)percentualICMS.item(0);
-                if( percentualICMS.item(0) != null ){
-                    Number valorICMSTemporario = NumberFormat.getInstance().parse(percentualICMS.item(0).getTextContent().replace(".", ",")); // atentar ao fato de que deve ser usardo , para separar e não . , porém, se o número for milhar deve ser invertido . por , e , por .
-                    valorICMSProduto = valorICMSTemporario.doubleValue();
-                }
-
-                // Especificação do imposto IPI - é opcional
-                Element ipiElement = (Element)impostoElement.getElementsByTagName("IPI").item(0);
-                if( ipiElement != null ){
-                    Element ipiTribElement = (Element)ipiElement.getElementsByTagName("IPITrib").item(0);
-                    if( ipiTribElement != null ){
-                        NodeList percentualIPI = ipiTribElement.getElementsByTagName("pIPI");
-                        if( percentualIPI != null ){
-                            Element percentualIPIElement = (Element)percentualIPI.item(0);
-                                if( percentualIPIElement != null ){
-                                    
-                                    Number valorIPItemporario = NumberFormat.getInstance().parse(percentualIPI.item(0).getTextContent().replace(".", ",")); // atentar ao fato de que deve ser usardo , para separar e não . , porém, se o número for milhar deve ser invertido . por , e , por .
-                                    valorIPIProduto = valorIPItemporario.doubleValue();
-                                }
-                        }
-                    }
-                }
-                
+            for (int i = 0; i < detalhamentoProdutoNode.getLength(); i++) {
+                Element detalheElement = (Element) detalhamentoProdutoNode.item(i);
                 // Especificação do produto
                 NodeList produtoNode = detalheElement.getElementsByTagName("prod");
-                Element produtoEment = (Element)produtoNode.item(0);
+                Element produtoEment = (Element) produtoNode.item(0);
                 NodeList produto = produtoEment.getElementsByTagName("cProd");
                 NodeList codigoProdutoNode = produtoEment.getElementsByTagName("cProd");
                 String codigoProduto = codigoProdutoNode.item(0).getTextContent();
+                Produto produtoBancoDados = Produto.getByCodigo(codigoProduto);
+                
+                
+                
                 NodeList nomeProdutoNode = produtoEment.getElementsByTagName("xProd");
                 String nomeProduto = nomeProdutoNode.item(0).getTextContent();
                 NodeList ncmProdutoNode = produtoEment.getElementsByTagName("NCM");
@@ -276,10 +179,118 @@ public class Produto extends Model implements Serializable{
                 int quantidadeProduto = Integer.parseInt(qtd);
                 NodeList valorProdutoNode = produtoEment.getElementsByTagName("vUnCom");
                 String valorString = valorProdutoNode.item(0).getTextContent();
-                
+
                 Number valorProdutoTemporario = NumberFormat.getInstance().parse(valorString.replace(".", ",")); // atentar ao fato de que deve ser usardo , para separar e não . , porém, se o número for milhar deve ser invertido . por , e , por .
                 Double valorUnitarioProduto = valorProdutoTemporario.doubleValue();
+
+                // Especificação do imposto ICMS
+                NodeList impostoNode = detalheElement.getElementsByTagName("imposto");
+                Element impostoElement = (Element) impostoNode.item(0);
+
+                Element icmsElement = (Element) impostoElement.getElementsByTagName("ICMS").item(0);
+
+                Element icms00 = (Element) icmsElement.getElementsByTagName("ICMS00").item(0);
+                Element icms10 = (Element) icmsElement.getElementsByTagName("ICMS10").item(0);
+                Element icms20 = (Element) icmsElement.getElementsByTagName("ICMS20").item(0);
+                Element icms30 = (Element) icmsElement.getElementsByTagName("ICMS30").item(0);
+                Element icms40 = (Element) icmsElement.getElementsByTagName("ICMS40").item(0);
+                Element icms41 = (Element) icmsElement.getElementsByTagName("ICMS41").item(0);
+                Element icms50 = (Element) icmsElement.getElementsByTagName("ICMS50").item(0);
+                Element icms51 = (Element) icmsElement.getElementsByTagName("ICMS51").item(0);
+                Element icms60 = (Element) icmsElement.getElementsByTagName("ICMS60").item(0);
+                Element icms70 = (Element) icmsElement.getElementsByTagName("ICMS70").item(0);
+                Element icms90 = (Element) icmsElement.getElementsByTagName("ICMS90").item(0);
+
+                Element icmssn101 = (Element) icmsElement.getElementsByTagName("ICMSSN101").item(0);
+
+                Element icmssn102 = (Element) icmsElement.getElementsByTagName("ICMSSN102").item(0);
+                Element icmssn103 = (Element) icmsElement.getElementsByTagName("ICMSSN103").item(0);
+                Element icmssn300 = (Element) icmsElement.getElementsByTagName("ICMSSN300").item(0);
+                Element icmssn400 = (Element) icmsElement.getElementsByTagName("ICMSSN400").item(0);
+
+                Element icmssn201 = (Element) icmsElement.getElementsByTagName("ICMSSN201").item(0);
+                Element icmssn202 = (Element) icmsElement.getElementsByTagName("ICMSSN202").item(0);
+                Element icmssn203 = (Element) icmsElement.getElementsByTagName("ICMSSN203").item(0);
+                Element icmssn500 = (Element) icmsElement.getElementsByTagName("ICMSSN500").item(0);
+
+                Element icmssn900 = (Element) icmsElement.getElementsByTagName("ICMSSN900").item(0);
+
+                Element icms = null;
+
+                if (icms00 != null) {
+                    icms = icms00;
+                } else if (icmssn101 != null) {
+                    icms = icmssn101;
+                } else if (icms10 != null) {
+                    icms = icms10;
+                } else if (icms20 != null) {
+                    icms = icms20;
+                } else if (icms30 != null) {
+                    icms = icms30;
+                } else if (icms40 != null) {
+                    icms = icms40;
+                } else if (icms41 != null) {
+                    icms = icms41;
+                } else if (icms50 != null) {
+                    icms = icms50;
+                } else if (icms51 != null) {
+                    icms = icms51;
+                } else if (icms70 != null) {
+                    icms = icms70;
+                } else if (icms90 != null) {
+                    icms = icms90;
+                } else if (icmssn101 != null) {
+                    icms = icmssn101;
+                } else if (icmssn102 != null) {
+                    icms = icmssn102;
+                } else if (icmssn103 != null) {
+                    icms = icmssn103;
+                } else if (icmssn300 != null) {
+                    icms = icmssn300;
+                } else if (icmssn400 != null) {
+                    icms = icmssn400;
+                } else if (icmssn201 != null) {
+                    icms = icmssn201;
+                } else if (icmssn202 != null) {
+                    icms = icmssn202;
+                } else if (icmssn203 != null) {
+                    icms = icmssn203;
+                } else if (icmssn500 != null) {
+                    icms = icmssn500;
+                } else if (icmssn900 != null) {
+                    icms = icmssn900;
+                }
+
+                Double valorICMSProduto = 0.0;
+                Double valorIPIProduto = 0.0;
+
+                NodeList percentualICMS = icms.getElementsByTagName("pICMS");
+
+                Element percentualIcmsElement = (Element) percentualICMS.item(0);
+                if (percentualICMS.item(0) != null) {
+                    Number valorICMSTemporario = NumberFormat.getInstance().parse(percentualICMS.item(0).getTextContent().replace(".", ",")); // atentar ao fato de que deve ser usardo , para separar e não . , porém, se o número for milhar deve ser invertido . por , e , por .
+                    valorICMSProduto = valorICMSTemporario.doubleValue();
+                }
+
+                // Especificação do imposto IPI - é opcional
+                Element ipiElement = (Element) impostoElement.getElementsByTagName("IPI").item(0);
+                if (ipiElement != null) {
+                    Element ipiTribElement = (Element) ipiElement.getElementsByTagName("IPITrib").item(0);
+                    if (ipiTribElement != null) {
+                        NodeList percentualIPI = ipiTribElement.getElementsByTagName("pIPI");
+                        if (percentualIPI != null) {
+                            Element percentualIPIElement = (Element) percentualIPI.item(0);
+                            if (percentualIPIElement != null) {
+
+                                Number valorIPItemporario = NumberFormat.getInstance().parse(percentualIPI.item(0).getTextContent().replace(".", ",")); // atentar ao fato de que deve ser usardo , para separar e não . , porém, se o número for milhar deve ser invertido . por , e , por .
+                                valorIPIProduto = valorIPItemporario.doubleValue();
+                            }
+                        }
+                    }
+                }
+
                 
+
                 Produto produtoNota = new Produto();
                 produtoNota.setAliquotaICMS(valorICMSProduto);
                 produtoNota.setAliquotaIPI(valorIPIProduto);
@@ -291,23 +302,25 @@ public class Produto extends Model implements Serializable{
                 produtoNota.setQuantidadeEstoque(quantidadeProduto);
                 produtoNota.calcularValorVenda();
                 produtoNota.setFornecedor(fornecedor);
+                // Tentará obter a categoria do produto de um outro já cadastrado
+                if( produtoBancoDados != null ){
+                    produtoNota.setCategoria(produtoBancoDados.getCategoria());
+                }
                 produtosNfe.add(produtoNota);
-                
-                
             }
-            
+
             return produtosNfe;
         } catch (SAXException ex) {
             return null;
         } catch (IOException ex) {
             return null;
-        }catch (ParserConfigurationException ex) {
+        } catch (ParserConfigurationException ex) {
             return null;
         } catch (ParseException ex) {
             return null;
-        }catch(NumberFormatException n){
+        } catch (NumberFormatException n) {
             return null;
-        }        
+        }
     }
 
     public Fornecedor getFornecedor() {
@@ -326,14 +339,14 @@ public class Produto extends Model implements Serializable{
         this.nfe = nfe;
     }
 
-/*    public long getId() {
+    /*    public long getId() {
         return id;
     }
 
     public void setId(long id) {
         this.id = id;
     }
-*/  
+     */
     public double getValorUnitarioAquisicao() {
         return valorUnitarioAquisicao;
     }
@@ -365,53 +378,53 @@ public class Produto extends Model implements Serializable{
     public void setValorUnitarioVenda(double valorUnitarioVenda) {
         this.valorUnitarioVenda = valorUnitarioVenda;
     }
-    
-    public void calcularMargemContribuicao(){
-        
+
+    public void calcularMargemContribuicao() {
+
         double precoVenda = this.valorUnitarioVenda;
-        double custoVariavel = this.valorUnitarioAquisicao+
-                               this.valorUnitarioAquisicao*(nfe.getFrete()/100)+
-                               (valorUnitarioAquisicao+this.valorUnitarioAquisicao*(nfe.getFrete()/100))*(aliquotaICMS/100)+
-                               this.valorUnitarioAquisicao*(aliquotaIPI/100)+
-                               this.valorUnitarioAquisicao*(nfe.getFronteira()/100);
-        double despesaVariavel = valorUnitarioVenda*(SIMPLES/100)+
-                                 valorUnitarioVenda*(TAXA_CARTAO/100)+
-                                 valorUnitarioVenda*(COMISSAO_VENDAS/100)+
-                                 valorUnitarioVenda*(TAXAS_ADICIONAIS/100)+
-                                 VALOR_SACOLAS;
-        double margemContribuicaoReais = precoVenda-custoVariavel-despesaVariavel;
-        margemContribuicao = Math.round((margemContribuicaoReais/precoVenda)*100);
-        
+        double custoVariavel = this.valorUnitarioAquisicao
+                + this.valorUnitarioAquisicao * (nfe.getFrete() / 100)
+                + (valorUnitarioAquisicao + this.valorUnitarioAquisicao * (nfe.getFrete() / 100)) * (aliquotaICMS / 100)
+                + this.valorUnitarioAquisicao * (aliquotaIPI / 100)
+                + this.valorUnitarioAquisicao * (nfe.getFronteira() / 100);
+        double despesaVariavel = valorUnitarioVenda * (SIMPLES / 100)
+                + valorUnitarioVenda * (TAXA_CARTAO / 100)
+                + valorUnitarioVenda * (COMISSAO_VENDAS / 100)
+                + valorUnitarioVenda * (TAXAS_ADICIONAIS / 100)
+                + VALOR_SACOLAS;
+        double margemContribuicaoReais = precoVenda - custoVariavel - despesaVariavel;
+        margemContribuicao = Math.round((margemContribuicaoReais / precoVenda) * 100);
+
     }
-    
+
     // TODO: Refatorar para retornar o valor do cálculo, ao invés de colocar direto na propriedade
-    public void calcularValorVenda(){
-        
+    public void calcularValorVenda() {
+
         DecimalFormat df = new DecimalFormat("#.##");
         df.setRoundingMode(RoundingMode.CEILING);
-        
+
         // Cálculo 1
         // uso antigo //double varTemp = ((DESPESAS_FIXAS + nfe.getFrete() + nfe.getFronteira() + aliquotaICMS + aliquotaIPI)+100)/100;
-        double frete = (nfe.getFrete()/100);
-        double valorFrete = valorUnitarioAquisicao*frete;
-        double custoProduto = valorFrete+
-                              (valorFrete+valorUnitarioAquisicao)*(aliquotaICMS/100)+
-                              valorUnitarioAquisicao*(aliquotaIPI/100)+
-                              valorUnitarioAquisicao*(nfe.getFronteira()/100)+
-                              valorUnitarioAquisicao*(DESPESAS_FIXAS/100);
-                
-        valorUnitarioVenda = custoProduto+valorUnitarioAquisicao;
-        valorUnitarioVenda = valorUnitarioVenda+valorUnitarioVenda*(SIMPLES/100);
-        valorUnitarioVenda = valorUnitarioVenda+valorUnitarioVenda*(TAXA_CARTAO/100);
-        valorUnitarioVenda = valorUnitarioVenda+valorUnitarioVenda*(COMISSAO_VENDAS/100);
-        valorUnitarioVenda = valorUnitarioVenda+valorUnitarioVenda*(TAXAS_ADICIONAIS/100);
-        valorUnitarioVenda = valorUnitarioVenda+valorUnitarioVenda*(margemLucro/100);
-        valorUnitarioVenda = valorUnitarioVenda+VALOR_SACOLAS;
-        
+        double frete = (nfe.getFrete() / 100);
+        double valorFrete = valorUnitarioAquisicao * frete;
+        double custoProduto = valorFrete
+                + (valorFrete + valorUnitarioAquisicao) * (aliquotaICMS / 100)
+                + valorUnitarioAquisicao * (aliquotaIPI / 100)
+                + valorUnitarioAquisicao * (nfe.getFronteira() / 100)
+                + valorUnitarioAquisicao * (DESPESAS_FIXAS / 100);
+
+        valorUnitarioVenda = custoProduto + valorUnitarioAquisicao;
+        valorUnitarioVenda = valorUnitarioVenda + valorUnitarioVenda * (SIMPLES / 100);
+        valorUnitarioVenda = valorUnitarioVenda + valorUnitarioVenda * (TAXA_CARTAO / 100);
+        valorUnitarioVenda = valorUnitarioVenda + valorUnitarioVenda * (COMISSAO_VENDAS / 100);
+        valorUnitarioVenda = valorUnitarioVenda + valorUnitarioVenda * (TAXAS_ADICIONAIS / 100);
+        valorUnitarioVenda = valorUnitarioVenda + valorUnitarioVenda * (margemLucro / 100);
+        valorUnitarioVenda = valorUnitarioVenda + VALOR_SACOLAS;
+
         valorUnitarioVenda = Math.round(valorUnitarioVenda * 100.0) / 100.0;
-        
+
         this.calcularMargemContribuicao();
-        if( margemContribuicao < 27.0){
+        if (margemContribuicao < 27.0) {
             margemLucro += 0.5;
             calcularValorVenda();
         }
@@ -452,10 +465,10 @@ public class Produto extends Model implements Serializable{
     public int getQuantidadeEstoque() {
         return quantidadeEstoque;
     }
-    
-    public void subtrairEstoqueVenda(int quantidadeVendida){
-        
-        this.quantidadeEstoque = this.quantidadeEstoque-quantidadeVendida;
+
+    public void subtrairEstoqueVenda(int quantidadeVendida) {
+
+        this.quantidadeEstoque = this.quantidadeEstoque - quantidadeVendida;
     }
 
     public void setQuantidadeEstoque(int quantidadeEstoque) {
@@ -485,38 +498,47 @@ public class Produto extends Model implements Serializable{
     public void setAliquotaIPI(double aliquotaIPI) {
         this.aliquotaIPI = aliquotaIPI;
     }
+
+    public CategoriaProduto getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(CategoriaProduto categoria) {
+        this.categoria = categoria;
+    }
     
-    public static List<Produto> pesquisarPorNome(String nome){
+    
+
+    public static List<Produto> pesquisarPorNome(String nome) {
         Session session = Model.abrirSessao();
-        String hql = "from Produto where descricao LIKE :descricao";
+        String hql = "from Produto where descricao LIKE :descricao and ativo = 1";
         Query query = session.createQuery(hql);
-        query.setParameter("descricao", "%"+nome+"%");
+        query.setParameter("descricao", "%" + nome + "%");
         List<Produto> list = query.getResultList();
         session.close();
         return list;
     }
-    
-    public static Produto getByDescricao(String descricao){
+
+    public static Produto getByDescricao(String descricao) {
         Produto model = null;
-        try{
+        try {
             Session session = Model.abrirSessao();
-            String hql = "from Produto where descricao = :descricao";
+            String hql = "from Produto where descricao = :descricao and ativo = 1";
             Query query = session.createQuery(hql);
             query.setParameter("descricao", descricao);
             List<Produto> list = query.getResultList();
             session.close();
-            if( list.size() > 0){
+            if (list.size() > 0) {
                 return list.get(0);
-            }else{
+            } else {
                 return null;
             }
-        }catch(HibernateException he){
+        } catch (HibernateException he) {
             return null;
         }
-        
-        
+
     }
-    
+
     /*public Produto getByCodigo(){
         Produto model = null;
         try{
@@ -535,29 +557,28 @@ public class Produto extends Model implements Serializable{
             return null;
         }
     }*/
-    
     // TODO é possível otimizar para fazer isto com um JOIN e apenas uma consulta
-    public static List<Produto> listarProdutosPorDia( LocalDate dia ){
+    public static List<Produto> listarProdutosPorDia(LocalDate dia) {
         // Listar todas as vendas do dia
-        List<Venda> vendasDoDia = Venda.listarVendasPorData(dia);
+        List<Venda> vendasDoDia = Venda.listarVendasPorData(dia, dia);
         ArrayList<Produto> produtosVendidos = new ArrayList<Produto>();
-        for( int i = 0; i < vendasDoDia.size(); i++){
+        for (int i = 0; i < vendasDoDia.size(); i++) {
             List<VendaProduto> vendaProdutos = listarProdutosPorVenda(vendasDoDia.get(i));
-            for( int j = 0; j < vendaProdutos.size(); j++ ){
+            for (int j = 0; j < vendaProdutos.size(); j++) {
                 produtosVendidos.add(vendaProdutos.get(j).getProduto());
             }
         }
-        
+
         return produtosVendidos;
     }
 
     public static List<VendaProduto> listarProdutosPorVenda(Venda venda) {
-       if( !venda.getToken().equals("")  ){
-            try{
+        if (!venda.getToken().equals("")) {
+            try {
 
                 Session session = Model.abrirSessao();
                 //String hql = "from VendaProduto vp inner join vp.produto p where vp.venda = :venda";
-                String hql = "from VendaProduto where venda_id = :venda";
+                String hql = "from VendaProduto where venda_id = :venda and ativo = 1";
                 Query query = session.createQuery(hql);
                 query.setParameter("venda", venda.getToken());
 
@@ -580,57 +601,44 @@ public class Produto extends Model implements Serializable{
                 }else{
                     return null;
                 }*/
-            }catch(HibernateException he){
+            } catch (HibernateException he) {
                 return null;
             }
-       }
-       return new ArrayList<VendaProduto>();
+        }
+        return new ArrayList<VendaProduto>();
     }
 
-    public boolean filtrarPorEstoque(String filtro, Integer quantidade){
-        if( filtro == null || filtro.equals("") || filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.TODOS.name()) )
+    public boolean filtrarPorEstoque(String filtro, Integer quantidade) {
+        if (filtro == null || filtro.equals("") || filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.TODOS.name())) {
             return true;
-        
+        }
+
         String opa = Produto.VALORES_POSSIVEIS_ESTOQUE.POSITIVO.name();
-        
-        if( filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.POSITIVO.name()) && quantidade > 0)
+
+        if (filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.POSITIVO.name()) && quantidade > 0) {
             return true;
-        else if( filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.POSITIVO.name()) && quantidade <= 0 ){
+        } else if (filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.POSITIVO.name()) && quantidade <= 0) {
             return false;
         }
-        
-        if( filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.ZERADO.name()) && quantidade <= 0)
+
+        if (filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.ZERADO.name()) && quantidade <= 0) {
             return true;
-        else if( filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.ZERADO.name()) && quantidade > 0 )
+        } else if (filtro.equals(Produto.VALORES_POSSIVEIS_ESTOQUE.ZERADO.name()) && quantidade > 0) {
             return false;
-        
+        }
+
         return true;
     }
-    
-    public static String listarTodosJson(){
-        List<Produto> produtosCadastrados = (List<Produto>)(Object)listarTodos("Produto");
+
+    public static String listarTodosJson() {
+        List<Produto> produtosCadastrados = (List<Produto>) (Object) listarTodos("Produto");
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        
+
         String json = gson.toJson(produtosCadastrados);
-        
+
         return json;
     }
-    
-    public static Produto getByToken(String token){
-        Produto model = null;
-        
-        try{
-            Session session = Model.abrirSessao();
-            session.beginTransaction();
-            model = session.get(Produto.class, token);
-            session.close();
-        }catch(HibernateException he){
-            return null;
-        }
-        
-        return model;
-    }
-    
+
     // TODO apagar se não for usar
     /*public List<Produto> filtrarPorEstoque(String valorEstoqueSelecionado) {
         
@@ -657,7 +665,55 @@ public class Produto extends Model implements Serializable{
             return null;
         }
     }*/
+    public static Produto getByCodigo(String codigo) {
+        try {
+            // TODO fazer um override deste método em Produto para verificar não o token, mas o código do produto. Se já tiver código do produto, perguntar se o usuário deseja acrescentar na quantidade do estoque
+            Session session = abrirSessao();
+            Query query = session.createQuery("from Produto where codigo = :codigo and ativo = 1"); //You will get Weayher object
+            query.setParameter("codigo", codigo);
+            List<Produto> p = query.getResultList();
 
-    
-    
+            session.close();
+            if (p != null && p.size() > 0) {
+                return p.get(0);
+            }
+
+            return null;
+        } catch (NoResultException nre) {
+            return null;
+        }
+
+    }
+
+    public boolean salvar() {
+
+        try {
+            Produto p = Produto.getByCodigo(this.getCodigo());
+            if (p == null) {
+                Session session = abrirSessao();
+                session.beginTransaction();
+
+                session.save(this);
+                session.getTransaction().commit();
+                session.close();
+                return true;
+            } else {
+                p.setQuantidadeEstoque(p.getQuantidadeEstoque() + this.getQuantidadeEstoque());
+                p.atualizar();
+                return true;
+            }
+        } catch (HibernateException he) {
+            return false;
+        }
+    }
+
+    // TODO Usar apenas para fins de testes para excluir registros de teste
+    public void del() {
+        Session session = abrirSessao();
+        session.beginTransaction();
+        session.delete(this);
+        session.getTransaction().commit();
+        session.close();
+    }
+
 }

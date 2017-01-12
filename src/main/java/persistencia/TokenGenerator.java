@@ -22,7 +22,11 @@ public class TokenGenerator implements IdentifierGenerator{
     @Override
     public Serializable generate(SharedSessionContractImplementor ssci, Object o) throws HibernateException {
 
-        return UUID.randomUUID().toString();
+        Model p = (Model)o;
+        if( p.getToken().equals("") )
+            return UUID.randomUUID().toString();
+        else
+            return p.getToken();
     }
 
     

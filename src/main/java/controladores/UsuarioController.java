@@ -11,7 +11,11 @@ import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
+import javax.ws.rs.GET;
 import model.FormaPagamento;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import model.Produto;
 import model.Usuario;
 
 /**
@@ -20,6 +24,7 @@ import model.Usuario;
  */
 @ManagedBean
 @SessionScoped
+@Path("/usuarios")
 public class UsuarioController {
     
     private Usuario usuario;
@@ -48,6 +53,12 @@ public class UsuarioController {
         return vendedores;
     }
     
-    
+    @GET
+    @Produces("application/json")
+    @Path("listar")
+    public String listarVendasJson(){
+        String json = Usuario.listarTodosJson();
+        return json;
+    }
     
 }

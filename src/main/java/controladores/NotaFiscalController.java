@@ -12,7 +12,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +29,7 @@ import model.NotaFiscal;
 import model.Produto;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.model.UploadedFile;
 
 /**
@@ -35,15 +38,14 @@ import org.primefaces.model.UploadedFile;
  */
 @ManagedBean(name="nfController")
 @SessionScoped
-public class NotaFiscalController {
-    
+public class NotaFiscalController implements Serializable{
     
     NotaFiscal notaFiscal;
     
+    
     @PostConstruct
     public void init() {
-        
-        // Não posso colocar a NF aqui, pos nas requisições AJAX ele chama e reinicia a NF.
+
     }
 
     public NotaFiscalController() {
@@ -54,12 +56,13 @@ public class NotaFiscalController {
     
     
     public String gerenciarEnvio(){
-        
+        FacesContext context = FacesContext.getCurrentInstance();
         if( this.notaFiscal.gerenciarEnvioNfe() ){
             return "listagem_produtos.xhtml";
         }else{
             // Houve um erro ao enviar o XML ou ao decompor ele
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Erro!",  "Houve um problema ao tentar converter o XML") );
+            if( context != null)
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Houve um erro ao tentar decompor o XML da NFE."));
             
         }
         
@@ -75,9 +78,19 @@ public class NotaFiscalController {
     }
     
     public String salvar(){
+        FacesContext context = FacesContext.getCurrentInstance();
+        // Verificar Quem estiver com o check selecionado
+        // Se já estiver cadastrado, pega o estoque antigo e incrementa
+        // Se não tiver, salva
+        // Quem não estiver checado e estiver cadastrado, pega o estoque antigo e mantém 
         if( this.notaFiscal.salvarProdutosBD() ){
+            if( context != null)
+                context.addMessage(null, new FacesMessage("Success", "Produtos cadastrados com sucesso"));
             this.notaFiscal = new NotaFiscal();
             return "/sys/produtos/listagem_produtos";
+        }else{
+            if( context != null)
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível salvar os produtos da notafiscal no banco de dados."));
         }
         
         return "";

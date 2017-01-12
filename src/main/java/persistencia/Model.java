@@ -5,6 +5,7 @@
  */
 package persistencia;
 
+import com.google.gson.annotations.Expose;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.Entity;
@@ -20,6 +21,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import model.Produto;
 import model.Venda;
 import org.hibernate.HibernateException;
+import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.GenericGenerator;
@@ -37,23 +39,20 @@ public class Model {
     @Id
     @GenericGenerator(name = "token_gen", strategy = "persistencia.TokenGenerator")
     @GeneratedValue(generator = "token_gen")
-    private String token; // TODO Usar para gerar o identificador único entre BDs
+    @Expose
+    private String token; 
+    public boolean ativo; // TODO alterar a sincronização para realizar apenas de itens ativos
     @Transient
-    private String nomeTabela; // Utilizado para gerenciar consultas em que o nome da tabela é necessário
+    protected String nomeTabela; // Utilizado para gerenciar consultas em que o nome da tabela é necessário
     protected static SessionFactory sessionFactory = null;
     
     static {
-        if (sessionFactory == null) {
-            final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
-                    .configure() // configures settings from hibernate.cfg.xml
-                    .build();
-            sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
-            
-        }
+        
     }
 
     public Model() {
         token = new String();
+        ativo = true;
     }
 
 
@@ -65,7 +64,13 @@ public class Model {
         this.nomeTabela = nomeTabela;
     }
 
-    
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
     
     public String getToken() {
         return token;
@@ -75,9 +80,20 @@ public class Model {
         this.token = token;
     }
     
+    public boolean excluir(){
+        if( !this.getToken().equals("")){ // significa que não está cadastrado no BD
+            this.setAtivo(false);
+            return this.atualizar();
+        }else{
+            return false;
+        }
+        
+    }
+    
     // TODO ver como optimizar esta consulta
     public boolean modelExiste(){
         try {
+            // TODO fazer um override deste método em Produto para verificar não o token, mas o código do produto. Se já tiver código do produto, perguntar se o usuário deseja acrescentar na quantidade do estoque
             Session session = abrirSessao();
             Query query = session.createQuery("from " + nomeTabela + " where token = :token"); //You will get Weayher object
             query.setParameter("token", this.getToken());
@@ -93,10 +109,19 @@ public class Model {
             return false;
         } catch (NoResultException nre ){
             return false;
+        } catch (NonUniqueResultException ne){
+            return true;
         }
     }
     
     protected static Session abrirSessao(){
+        if (sessionFactory == null) {
+            final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+                    .configure() // configures settings from hibernate.cfg.xml
+                    .build();
+            sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
+            
+        }
         Session session = sessionFactory.openSession();
         return session;
     } 
@@ -131,8 +156,8 @@ public class Model {
         List<Object> resultado = null;
         try{
             Session session = abrirSessao();
-            Query query = session.createQuery("from "+nomeTabela); //You will get Weayher object
-            
+            Query query = session.createQuery("from "+nomeTabela+" where ativo = :ativo"); //You will get Weayher object
+            query.setParameter("ativo", true);
             resultado = query.getResultList(); //You are accessing  as list<WeatherModel>
                     //.createCriteria(MyEntity.class).list();
                     
@@ -153,6 +178,21 @@ public class Model {
         return false;
     }
 
+    public static Object getByToken(Class classe, String token){
+        Object model = null;
+        
+        try{
+            Session session = Model.abrirSessao();
+            session.beginTransaction();
+            model = session.get(classe, token);
+            session.close();
+        }catch(HibernateException he){
+            return null;
+        }
+        
+        return model;
+    }
+    
     
     
     

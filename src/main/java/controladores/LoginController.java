@@ -34,19 +34,26 @@ public class LoginController {
     }
     
     public String fazerLogin(){
-        Usuario usuarioLogado = usuario.fazerLogin();
         FacesContext context = FacesContext.getCurrentInstance();
-        if( usuarioLogado != null ){
+        try {
+            Usuario usuarioLogado = usuario.fazerLogin();
             
-            context.getExternalContext().getSessionMap().put("usuarioLogado", usuarioLogado);
-            context.addMessage(null, new FacesMessage("Success",  "Login realizado com sucesso!") );
-            return "sys/index";
-        }else{
-            
-            context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Login ou senha inválidos."));
-            
+            if (usuarioLogado != null) {
+
+                context.getExternalContext().getSessionMap().put("usuarioLogado", usuarioLogado);
+                context.addMessage(null, new FacesMessage("Success", "Login realizado com sucesso!"));
+                return "sys/index";
+            } else {
+
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Login ou senha inválidos."));
+
+            }
+        } catch (RuntimeException re) {
+            if (context != null) {
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "O banco de dados está desconectado. Por gentileza entre em contato com o administrador."));
+            }
         }
-        
+
         return "";
     }
     

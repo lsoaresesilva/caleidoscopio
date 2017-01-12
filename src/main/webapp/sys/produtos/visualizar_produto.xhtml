@@ -14,6 +14,17 @@
                                     
                                     <h:outputLabel value="Código"/>
                                     <h:inputText value="#{produtoController.produto.codigo}" />
+                                    <h:outputLabel value="Categoria"/>
+                                    <p:autoComplete id="acPagamento" 
+                                        value="#{produtoController.produto.categoria}" 
+                                        itemValue="#{categoria}" 
+                                        var="categoria" 
+                                        itemLabel="#{categoria.getNome()}" 
+                                        converter="categoriaProdutoConverter" 
+                                        completeMethod="#{produtoController.filtrarCategorias}" 
+                                        />
+                                    <h:outputLabel value="Valor"/>
+                                    <h:inputText value="#{produtoController.produto.valorUnitarioVenda}" />
                                     <h:outputLabel value="Descrição"/>
                                     <h:inputText value="#{produtoController.produto.descricao}" />
                                     <h:outputLabel value="Quantidade em estoque"/>

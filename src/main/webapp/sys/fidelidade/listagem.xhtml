@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Caleidoscópio</title>
+    </h:head>
+    <h:body>
+        
+        <ui:include src="../menu.xhtml" />
+        <p:panel>
+            <h:form id="listagemClientes">
+                <p:growl id="growl" showDetail="true" sticky="true" />  
+                
+                <p:dataTable  id="clientesCadastrados" var="cliente" 
+                             value="#{clienteController.listar()}" 
+                             widgetVar="clientesWidget"
+                             rows="10"
+                             emptyMessage="Nenhum cliente cadastrado."
+                             paginator="true"
+                             rowKey="#{cliente.token}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="25,50,100"
+                             filteredValue="#{clienteController.filteredClientes}"
+                             >
+                    
+                    <p:column headerText="Nome" filterMatchMode="contains" filterBy="#{produto.descricao}">
+                        <h:outputText value="#{cliente.nome}" />
+                    </p:column>
+                    <p:column headerText="Telefone">
+                        <h:outputText value="#{cliente.telefone}" />
+                    </p:column>
+                    <p:column headerText="Pontuacao">
+                        <h:outputText value="#{cliente.calcularPontuacao()}" />
+                    </p:column>
+                    
+                </p:dataTable>
+                
+            </h:form>
+        </p:panel>
+        
+    </h:body>
+</html>

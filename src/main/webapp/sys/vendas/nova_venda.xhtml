@@ -12,9 +12,10 @@
     </h:head>
     <h:body>
         <ui:include src="../menu.xhtml"/>
+        
         <p:panel>
             <h:form id ="venda">
-
+                <p:growl id="growl" autoUpdate="true" showDetail="true" sticky="true" />  
                 <p:wizard widgetVar="wizard" 
                           flowListener="#{vendaController.onFlowProcess}" 
                           nextLabel="Próximo"
@@ -25,13 +26,32 @@
                             <h:outputLabel value="Produto"/>
                             <p:autoComplete id="acSimple" value="${vendaController.produtoTemporario}" itemValue="#{produto}" var="produto" itemLabel="#{produto.descricao}" completeMethod="#{vendaController.filtrarProdutos}" converter="produtoConverter" />
                             <p:commandButton value="Adicionar" action="${vendaController.adicionarProduto()}" update=":venda:nfVenda :venda:valorTotalPanel" />
-
-
                         </p:panelGrid>
                         <p:panel>
                             <h:outputLabel value="Vendedor ativo: #{usuarioLogado.email}"/>
+                            
                         </p:panel>
                         <p:panel id="nfVenda">
+                            <p:panelGrid columns="2" id="infoCliente">
+                                <h:outputLabel value="Cliente"/>
+                                <p:autoComplete id="clientePesquisa" 
+                                            value="${vendaController.venda.cliente}" 
+                                            itemValue="#{cliente}" 
+                                            var="cliente" 
+                                            itemLabel="#{cliente.nome}" 
+                                            completeMethod="#{clienteController.filtrar}" 
+                                            converter="clienteConverter" >
+                                    <p:ajax event="itemSelect" listener="#{vendaController.selecionarCliente}" update="infoCliente"/>
+                                </p:autoComplete>
+                                
+                                <h:outputLabel value="Pontos disponíveis"/>
+                                <h:outputLabel id="labelPontoDisponivel" value="#{clienteController.calcularPontuacao()}"/>
+                                <h:outputLabel value="Premiação disponível"/>
+                                <h:outputLabel id="labelPremioDisponivel" value="#{clienteController.calcularPremiacao()}"/>
+                                <h:outputLabel value="Utilizar Prêmio?"/>
+                                <p:inputSwitch value="#{vendaController.utilizarCupomDesconto}" offLabel="Não" onLabel="Sim" valueChangeListener="#{vendaController.definirCupomDesconto()}"/>
+                                
+                            </p:panelGrid>
                             <p:dataTable id="vendaProdutos" rowIndexVar="rowId" var="produto" value="${vendaController.venda.produtos}">
                                 <p:column headerText="Produto">
                                     <h:outputText value="${produto.produto.descricao}" />
@@ -65,10 +85,16 @@
 
                     <p:tab id="formaPagamento" title="Forma de pagamento">
                         <p:panel>
-
                             <p:panelGrid columns="2">
                                 <h:outputLabel value="Forma de pagamento"/>
-                                <p:autoComplete id="acPagamento" value="#{vendaController.venda.formaPagamento}" itemValue="#{formaPagamento}" var="formaPagamento" itemLabel="#{formaPagamento.recuperarString()}" converter="formaPagamentoConverter" completeMethod="#{vendaController.filtrarFormasPagamento}" required="true" requiredMessage="É preciso informar a forma de pagamento!"/>
+                                <p:autoComplete id="acPagamento" 
+                                                value="#{vendaController.venda.formaPagamento}" 
+                                                itemValue="#{formaPagamento}" 
+                                                var="formaPagamento" 
+                                                itemLabel="#{formaPagamento.recuperarString()}" 
+                                                converter="formaPagamentoConverter" 
+                                                completeMethod="#{vendaController.filtrarFormasPagamento}" 
+                                                />
                                 <h:outputLabel value="Valor pago" />
                                 <p:inputText binding="${pago}">
                                     <p:ajax event="keyup" update="trocoPagar"/>

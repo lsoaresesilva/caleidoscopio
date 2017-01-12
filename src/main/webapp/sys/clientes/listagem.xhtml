@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <title>Gerenciamento de clientes</title>
+    </h:head>
+    <h:body>
+        
+        <ui:include src="../menu.xhtml" />
+        <p:panel>
+            <h:form id="listagemClientes">
+                <p:growl id="growl" showDetail="true" sticky="true" />  
+                <p:panel id="operacoesClientes">
+                <p:commandButton value="Inserir" update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" />
+                </p:panel>
+                <p:dataTable  id="clientesCadastrados" var="cliente" 
+                             value="#{clienteController.listar()}" 
+                             widgetVar="clientesWidget"
+                             rows="10"
+                             emptyMessage="Nenhum cliente cadastrado."
+                             paginator="true"
+                             rowKey="#{cliente.token}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="25,50,100"
+                             filteredValue="#{clienteController.filteredClientes}"
+                             >
+                    <f:facet name="header">
+                        <p:outputPanel>
+                            <h:outputText value="Pesquisar em todos os campos: " />
+                            <p:inputText id="globalFilter" onkeyup="PF('clientesWidget').filter()" style="width:150px" placeholder="Palavra-chave"/>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="Nome" filterMatchMode="contains" filterBy="#{produto.descricao}">
+                        <h:outputText value="#{cliente.nome}" />
+                    </p:column>
+                    <p:column headerText="E-mail" filterBy="#{cliente.femail}" filterMatchMode="contains">
+                        <h:outputText value="#{cliente.email}" />
+                    </p:column>
+                    <p:column headerText="Telefone">
+                        <h:outputText value="#{cliente.telefone}" />
+                    </p:column>
+                    <p:column headerText="Data de aniversário" >
+                        <h:outputText value="#{cliente.dataAniversario}" />
+                    </p:column>
+                    <p:column style="width:32px;text-align: center">
+                        <p:commandButton update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" icon="ui-icon-search" title="Visualizar">
+                            <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
+                        </p:commandButton>
+                    </p:column>
+                    <p:column style="width:32px;text-align: center">
+                        <p:commandButton update=":listagemClientes:clientesCadastrados" action="#{clienteController.excluir()}" icon="ui-icon-closethick" title="Excluir">
+                            <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
+                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o produto?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                </p:confirmDialog>
+            </h:form>
+            <ui:include src="visualizar.xhtml" />
+        </p:panel>
+        
+    </h:body>
+</html>
+

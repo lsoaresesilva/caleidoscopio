@@ -5,6 +5,9 @@
  */
 package model;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -18,9 +21,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Query;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import persistencia.HibernateUtil;
 import persistencia.Model;
+import static persistencia.Model.listarTodos;
 
 /**
  *
@@ -32,8 +37,11 @@ public class Usuario extends Model implements Serializable{
     /*@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;*/
+    @Expose
     private String email;
+    @Expose
     private String senha;
+    @Expose
     private String nome;
 
     public String getEmail() {
@@ -79,7 +87,7 @@ public class Usuario extends Model implements Serializable{
     }
     
     public static List<Usuario> pesquisarPorNome(String nome){
-        Session session = sessionFactory.openSession();
+        Session session = Model.abrirSessao();
         String hql = "from Usuario where nome LIKE :nome";
         Query query = session.createQuery(hql);
         query.setParameter("nome", "%"+nome+"%");
@@ -92,7 +100,7 @@ public class Usuario extends Model implements Serializable{
         // Verificar se existe usuário cadastrado no banco de dados e com a senha informada
         Usuario usuarioLogado = null;
         
-        Session session = sessionFactory.openSession();
+        Session session = Model.abrirSessao();
         String hql = "from Usuario where email = :email and senha = :senha";
         Query query = session.createQuery(hql);
         query.setParameter("email", this.email);
@@ -136,6 +144,31 @@ public class Usuario extends Model implements Serializable{
         if( this.getEmail().equals(u.getEmail()) )
             return true;
         return false;
+    }
+    
+    // TODO generalizar para todos os models
+    public static Usuario getByToken(String token){
+        Usuario model = null;
+        
+        try{
+            Session session = Model.abrirSessao();
+            session.beginTransaction();
+            model = session.get(Usuario.class, token);
+            session.close();
+        }catch(HibernateException he){
+            return null;
+        }
+        
+        return model;
+    }
+    
+    public static String listarTodosJson(){
+        List<Usuario> usuariosCadastrados = (List<Usuario>)(Object)listarTodos("Usuario");
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        
+        String json = gson.toJson(usuariosCadastrados);
+        
+        return json;
     }
     
 }

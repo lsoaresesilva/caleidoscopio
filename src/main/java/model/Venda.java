@@ -49,21 +49,24 @@ public class Venda extends Model implements Serializable{
     @ManyToOne
     @JoinColumn(name="usuario_id")
     private Usuario usuario;
-    @Transient
-    public static String NOMETABELA = "Venda";
+    @ManyToOne
+    @JoinColumn(name="cliente_id")
+    private Cliente cliente;
+    private double cupomDesconto; // obtido a partir da premiação de fidelidade do cliente
     
     
     public Venda() {
         super();
         super.setNomeTabela("Venda");
-    }
-    
-    public Venda(Usuario usuario) {
-        super();
-        super.setNomeTabela("Venda");
         produtos = new ArrayList<VendaProduto>();
         dataCriacao = LocalDate.now();
         LocalDate temp = dataCriacao;
+        formaPagamento = null;
+        cupomDesconto = 0.0;
+    }
+    
+    public Venda(Usuario usuario) {
+        this();
         this.usuario = usuario;
     }
     
@@ -87,16 +90,17 @@ public class Venda extends Model implements Serializable{
             valorTotal += produtos.get(i).calcularValorComDesconto();
         }
         
-        return valorTotal;
+        return valorTotal-cupomDesconto;
     }
     
     
     
-    public static List<Venda> listarVendasPorData(LocalDate data){
+    public static List<Venda> listarVendasPorData(LocalDate dataInicio, LocalDate dataTermino){
         Session session = Model.abrirSessao();
-        String hql = "from Venda where dataCriacao = :data "; // usar groupby
+        String hql = "from Venda AS v where v.dataCriacao BETWEEN :dataInicio and :dataTermino and ativo = 1"; // usar groupby
         Query query = session.createQuery(hql);
-        query.setParameter("data", data);
+        query.setParameter("dataInicio", dataInicio);
+        query.setParameter("dataTermino", dataTermino);
         List<Venda> list = query.getResultList();
         session.close();
         return list;
@@ -104,7 +108,7 @@ public class Venda extends Model implements Serializable{
     
     public double calcularValorTotalData(LocalDate data){
         // somar as colunas filtradas pela data especificada
-        List<Venda> vendasLocalizadas = listarVendasPorData(data);
+        List<Venda> vendasLocalizadas = listarVendasPorData(data, data);
         double valorTotal = 0.0;
         for(int i = 0; i < vendasLocalizadas.size(); i++){
             List<VendaProduto> vendaProdutos = vendasLocalizadas.get(i).getProdutos();      
@@ -127,6 +131,14 @@ public class Venda extends Model implements Serializable{
         double troco = Double.parseDouble(valorRecebido)-valorTotal; // verificar erro com a string sendo vazia
         // Retornar o valor do troco
         return troco;
+    }
+
+    public double getCupomDesconto() {
+        return cupomDesconto;
+    }
+
+    public void setCupomDesconto(double cupomDesconto) {
+        this.cupomDesconto = cupomDesconto;
     }
 
     public LocalDate getDataCriacao() {
@@ -153,6 +165,14 @@ public class Venda extends Model implements Serializable{
         this.usuario = usuario;
     }
 
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
     public List<VendaProduto> getProdutos() {
         return produtos;
     }
@@ -167,9 +187,10 @@ public class Venda extends Model implements Serializable{
         
     }
     
+    // TODO filtrar para que itens inativos não sejam exibidos
     public List<Venda> listarTodos(){
         Session session = Model.abrirSessao();
-        String hql = "from Venda order by dataCriacao"; // usar groupby
+        String hql = "from Venda where ativo = 1 order by dataCriacao"; 
         Query query = session.createQuery(hql);
 
         List<Venda> list = query.getResultList();
@@ -182,13 +203,14 @@ public class Venda extends Model implements Serializable{
     
     public boolean salvar() {
         
-        // Reduzir a quantidade comprada do estoque dos produtos
-        for(int i = 0; i < this.produtos.size(); i++ ){
-            this.produtos.get(i).getProduto().subtrairEstoqueVenda(this.produtos.get(i).getQuantidadeCompra());
+        // Cada venda realizada deve reduzir do estoque dos produtos
+        if (this.produtos != null) {
+            for (int i = 0; i < this.produtos.size(); i++) {
+                this.produtos.get(i).getProduto().subtrairEstoqueVenda(this.produtos.get(i).getQuantidadeCompra());
+            }
+
         }
-        
         return super.salvar();
-        
     }
     
     public static List<Venda> listarPorDataUsuario( LocalDate dataInicio, LocalDate dataTermino, Usuario vendedor){
@@ -204,6 +226,19 @@ public class Venda extends Model implements Serializable{
         session.close();
         return list;
     }
+    
+    public static List<Venda> listarPorCliente( Cliente cliente ){
+        Session session = Model.abrirSessao();
+        String hql = "from Venda where cliente_id = :cliente"; // usar groupby
+        Query query = session.createQuery(hql);
+        query.setParameter("cliente", cliente.getToken());
+        List<Venda> list = query.getResultList();
+        
+        session.close();
+        return list;
+    }
+    
+    
     
     public Venda buildFromJSON(String json){
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
@@ -247,21 +282,20 @@ public class Venda extends Model implements Serializable{
     
     }
     
-    
-    
-    public static Venda getByToken(String token){
-        Venda model = null;
-        
-        try{
-            Session session = Model.abrirSessao();
-            session.beginTransaction();
-            model = session.get(Venda.class, token);
-            session.close();
-        }catch(HibernateException he){
-            return null;
+    public boolean validar(){
+        // Venda precisa ter itens
+        if( getProdutos().size() == 0)
+            return false;
+        // Qtd itens ou desconto não pode ser 0 ou negativo
+        for( VendaProduto vp: this.getProdutos() ){
+            if( !vp.validar() )
+                return false;
         }
         
-        return model;
+        if( getFormaPagamento() == null )
+            return false;
+        
+        return true;
     }
     
     

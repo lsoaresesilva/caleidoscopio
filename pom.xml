@@ -18,6 +18,14 @@
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <!-- https://mvnrepository.com/artifact/org.primefaces.themes/cupertino -->
+        <!-- https://mvnrepository.com/artifact/net.bootsfaces/bootsfaces -->
+<dependency>
+    <groupId>net.bootsfaces</groupId>
+    <artifactId>bootsfaces</artifactId>
+    <version>1.0.2</version>
+</dependency>
+
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

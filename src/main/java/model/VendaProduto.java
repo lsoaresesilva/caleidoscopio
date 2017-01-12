@@ -51,6 +51,10 @@ public class VendaProduto extends Model implements Serializable {
     }
     
     public double calcularDesconto(){
+        if( produto == null){
+            return 0.0;
+        }
+        
         if( desconto != 0.0){
             double valor = produto.getValorUnitarioVenda()*(desconto/100);
             return valor;
@@ -60,12 +64,18 @@ public class VendaProduto extends Model implements Serializable {
     }
     
     public double calcularValorComDesconto(){
+        if( produto == null){
+            return 0.0;
+        }
         double desconto = calcularDesconto();
         double valor = (produto.getValorUnitarioVenda()-desconto)*quantidadeCompra;
         return valor;
     }
     
     public double calcularValorSemDesconto(){
+        if( produto == null){
+            return 0.0;
+        }
         double valor = produto.getValorUnitarioVenda()*quantidadeCompra;
         return valor;
     }
@@ -112,6 +122,15 @@ public class VendaProduto extends Model implements Serializable {
 
     public void setProduto(Produto produto) {
         this.produto = produto;
+    }
+    
+    public boolean validar(){
+        if( this.getDesconto() < 0.0 )
+            return false;
+        if( this.getQuantidadeCompra() < 1 )
+            return false;
+        
+        return true;
     }
     
     

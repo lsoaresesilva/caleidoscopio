@@ -3,7 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+          
+      xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <title>Listagem de produtos da NFE</title>
     </h:head>
@@ -21,35 +23,62 @@
                         <p:ajax event="keyup" update=":nfe:nfeProdutos" listener="#{nfController.notaFiscal.atualizarPrecos()}" />
                     </p:inputText>
                 </h:panelGrid>
-                <p:dataTable id="nfeProdutos" rowIndexVar="rowId" var="produto" value="#{nfController.notaFiscal.produtos}">
-                    <p:column headerText="Código">
+                <p:dataTable id="nfeProdutos" 
+                             rowKey="#{produto.codigo}"
+                             rowIndexVar="rowId" 
+                             var="produto"
+                             editable="true"
+                             editMode="cell"
+                             value="#{nfController.notaFiscal.produtos}"
+                             
+                             >
+                    <p:column headerText="Cód." width="5%">
                         <h:outputText value="#{produto.codigo}" />
                     </p:column>
-                    <p:column headerText="Quantidade">
+                    <p:column headerText="Qtde." width="5%">
                         <h:outputText value="#{produto.quantidadeEstoque}" />
                     </p:column>
-                    <p:column headerText="Descrição">
+                    <p:column headerText="Descrição" width="25%">
                         <h:outputText value="#{produto.descricao}" />
                     </p:column>
-                    <p:column headerText="Valor de compra">
+                    <p:column headerText="V. Unitário" width="10%">
                         <h:outputText value="#{produto.valorUnitario}" />
                     </p:column>
-                    <p:column headerText="ICMS">
-                        <p:inputText value="#{produto.aliquotaICMS}" >
-                            <p:ajax event="keyup" update="valorUnitarioVenda margemContribuicao" listener="#{produto.calcularValorVenda}" />
-                        </p:inputText>
+                    <p:column headerText="ICMS" width="5%">
+                        <p:cellEditor>
+                            <f:facet name="output"><h:outputText value="#{produto.aliquotaICMS}" /></f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{produto.aliquotaICMS}" style="width:100%" label="Year">
+                                <p:ajax event="keyup" update="valorUnitarioVenda margemContribuicao" listener="#{produto.calcularValorVenda}" />
+                                </p:inputText>
+                            </f:facet>
+                        </p:cellEditor>
                     </p:column>
-                    <p:column headerText="IPI">
+                    <p:column headerText="IPI" width="5%">
+                        
                         <h:outputText value="#{produto.aliquotaIPI}" />
                     </p:column>
-                    <p:column headerText="Valor de venda">
-                        <p:inputText id="valorUnitarioVenda" value="#{produto.valorUnitarioVenda}">
+                    <p:column headerText="V. de venda" width="10%">
+                        <p:inputText style="width:100%" id="valorUnitarioVenda" value="#{produto.valorUnitarioVenda}">
                             <p:ajax event="keyup" update="margemContribuicao" listener="#{produto.calcularMargemContribuicao}" />
                         </p:inputText>
                     </p:column>
-                    <p:column headerText="Margem de contribuição (%)">
+                    <p:column headerText="M. de contribuição (%)" width="10%">
                         <h:outputText id="margemContribuicao" value="#{produto.margemContribuicao}" />
                     </p:column>
+                    <p:column headerText="Categorias" width="10%">
+                        <p:autoComplete id="acPagamento" 
+                                        value="#{produto.categoria}" 
+                                        itemValue="#{categoria}" 
+                                        var="categoria" 
+                                        itemLabel="#{categoria.getNome()}" 
+                                        converter="categoriaProdutoConverter" 
+                                        completeMethod="#{produtoController.filtrarCategorias}" 
+                                        />
+
+                    </p:column>
+                    <!-- TODO verificar see vai precisar --> 
+                    <!-- <p:column headerText="Atualizar estoque" selectionMode="multiple" style="width:16px;text-align:center"/> -->
                 </p:dataTable>
                 <h:commandButton action="${nfController.salvar()}" value="Salvar" />
             </h:form>

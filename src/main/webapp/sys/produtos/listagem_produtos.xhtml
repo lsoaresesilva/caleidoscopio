@@ -12,11 +12,12 @@
         
         <ui:include src="../menu.xhtml" />
         <p:panel>
-            <h:form id="produtosCadastradosForm">
+            <h:form id="listagemProdutos">
+                <p:growl id="growl" showDetail="true" sticky="true" />  
                 <p:panel id="operacoesProdutos">
                 <p:commandButton value="Inserir" update=":dialogProdutosDetalhes:detalhesProduto" oncomplete="PF('produtoDialog').show()" />
                 </p:panel>
-                <p:dataTable id="produtosCadastrados" var="produto" 
+                <p:dataTable  id="produtosCadastrados" var="produto" 
                              value="#{produtoController.listarProdutos()}" 
                              widgetVar="produtosWidget"
                              rows="10"
@@ -31,11 +32,11 @@
                              >
                     <f:facet name="header">
                         <p:outputPanel>
-                            <h:outputText value="Search all fields:" />
-                            <p:inputText id="globalFilter" onkeyup="PF('produtosWidget').filter()" style="width:150px" placeholder="Enter keyword"/>
+                            <h:outputText value="Pesquisar em todos os campos: " />
+                            <p:inputText id="globalFilter" onkeyup="PF('produtosWidget').filter()" style="width:150px" placeholder="Palavra-chave"/>
                         </p:outputPanel>
                     </f:facet>
-                    <p:column headerText="Descrição" filterBy="#{produto.descricao}">
+                    <p:column headerText="Descrição" filterMatchMode="contains" filterBy="#{produto.descricao}">
                         <h:outputText value="#{produto.descricao}" />
                     </p:column>
                     <p:column headerText="Fornecedor" filterBy="#{produto.fornecedor.nome}" filterMatchMode="contains">
@@ -58,7 +59,17 @@
                             <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
                         </p:commandButton>
                     </p:column>
+                    <p:column style="width:32px;text-align: center">
+                        <p:commandButton update=":listagemProdutos:produtosCadastrados" action="#{produtoController.excluirProduto()}" icon="ui-icon-closethick" title="Excluir">
+                            <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
+                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o produto?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
                 </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                </p:confirmDialog>
             </h:form>
 
             <ui:include src="visualizar_produto.xhtml" />

@@ -28,7 +28,7 @@ public class ProdutoTest {
     }
 
     
-    @Test
+    //@Test
     public void testExtrairProdutosNFE() throws FileNotFoundException{
         
         File fi = new File("/Users/macbookair/Documents/files/", "xml_test.xml");
@@ -51,15 +51,34 @@ public class ProdutoTest {
         //String json = Produto.listarTodosJson();
     }
     
-    @Test
+    //@Test
     public void testListarProdutosPorDia(){
         List<Produto> produtosPorDiaTest = new ArrayList<Produto>();
-        Produto pTest = Produto.getByToken("0a2f61b3-8808-4f14-aff4-e84c1deddafe");
+        Produto pTest = (Produto)Produto.getByToken(Produto.class, "0a2f61b3-8808-4f14-aff4-e84c1deddafe");
         produtosPorDiaTest.add(pTest);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         
         List<Produto> produtosPorDia = Produto.listarProdutosPorDia(LocalDate.parse("2016-12-19", formatter));
         assertEquals(produtosPorDiaTest, produtosPorDia);
+    }
+    
+    //@Test
+    public void testSalvarProdutoJaCadastrado(){
+        Produto p = new Produto();
+        Fornecedor f = new Fornecedor();
+        f.setCnpj("21874");
+        f.setNome("Opa!");
+        p.setDescricao("Bla");
+        p.setCodigo("maoe"); // TODO mudar o token
+        p.setQuantidadeEstoque(10);
+        p.setFornecedor(f);
+        
+        Produto p2 = (Produto)Produto.getByToken(Produto.class, "012e3eae-d817-4a23-a259-a286c952f2a4");
+        int qtdAnterior = p2.getQuantidadeEstoque();
+        p.salvar();
+        p2 = (Produto)Produto.getByToken(Produto.class, "012e3eae-d817-4a23-a259-a286c952f2a4");
+        int qtdAtual = p2.getQuantidadeEstoque();
+        assertEquals(qtdAtual,qtdAnterior+p.getQuantidadeEstoque() );
     }
     
     @Test
@@ -69,9 +88,21 @@ public class ProdutoTest {
         f.setCnpj("21874");
         f.setNome("Opa!");
         p.setDescricao("Bla");
-        
+        p.setCodigo("maoe");
+        p.setQuantidadeEstoque(10);
         p.setFornecedor(f);
-        p.salvar();
+        assertTrue(p.salvar());
+        
+        
+    }
+    
+    @Test
+    public void testDeletar(){
+        Produto p = new Produto();
+        
+        p.setCodigo("maoe");
+        p = Produto.getByCodigo(p.getCodigo());
+        p.del();
     }
     
 }
