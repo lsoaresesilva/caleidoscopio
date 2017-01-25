@@ -4,16 +4,17 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
     <h:head>
         <title>Gerenciamento de clientes</title>
     </h:head>
     <h:body>
-        
+        <b:container>
         <ui:include src="../menu.xhtml" />
         <p:panel>
+            <p:growl id="growl" showDetail="true" sticky="true" />  
             <h:form id="listagemClientes">
-                <p:growl id="growl" showDetail="true" sticky="true" />  
                 <p:panel id="operacoesClientes">
                 <p:commandButton value="Inserir" update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" />
                 </p:panel>
@@ -34,27 +35,31 @@
                             <p:inputText id="globalFilter" onkeyup="PF('clientesWidget').filter()" style="width:150px" placeholder="Palavra-chave"/>
                         </p:outputPanel>
                     </f:facet>
-                    <p:column headerText="Nome" filterMatchMode="contains" filterBy="#{produto.descricao}">
+                    <p:column width="25%" headerText="Nome" filterMatchMode="contains" filterBy="#{cliente.nome}" filterStyle="width:100%">
                         <h:outputText value="#{cliente.nome}" />
                     </p:column>
-                    <p:column headerText="E-mail" filterBy="#{cliente.femail}" filterMatchMode="contains">
+                    <p:column width="15%" headerText="E-mail" filterBy="#{cliente.femail}" filterMatchMode="contains" filterStyle="width:100%">
                         <h:outputText value="#{cliente.email}" />
                     </p:column>
-                    <p:column headerText="Telefone">
+                    <p:column width="7%" headerText="Telefone">
                         <h:outputText value="#{cliente.telefone}" />
                     </p:column>
-                    <p:column headerText="Data de aniversário" >
-                        <h:outputText value="#{cliente.dataAniversario}" />
+                    <p:column width="5%" headerText="Pontos">
+                        
+                        <h:outputText value="#{cliente.retornarPontuacaoFidelidade()}" />
+                    
                     </p:column>
-                    <p:column style="width:32px;text-align: center">
+                    <p:column width="5%" headerText="Desconto">
+                        <h:outputText value="#{cliente.retornarDescontoFidelidade()}" />
+                    </p:column>
+                    <p:column width="5%" style="text-align: center">
                         <p:commandButton update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" icon="ui-icon-search" title="Visualizar">
                             <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
                         </p:commandButton>
-                    </p:column>
-                    <p:column style="width:32px;text-align: center">
+                    
                         <p:commandButton update=":listagemClientes:clientesCadastrados" action="#{clienteController.excluir()}" icon="ui-icon-closethick" title="Excluir">
                             <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
-                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o produto?" icon="ui-icon-alert" />
+                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o cliente?" icon="ui-icon-alert" />
                         </p:commandButton>
                     </p:column>
                 </p:dataTable>
@@ -65,7 +70,7 @@
             </h:form>
             <ui:include src="visualizar.xhtml" />
         </p:panel>
-        
+        </b:container>
     </h:body>
 </html>
 

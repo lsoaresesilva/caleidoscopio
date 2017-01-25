@@ -124,7 +124,7 @@ public class NotaFiscal {
     public boolean salvarProdutosBD(){
         try{
             for (int i = 0; i < this.produtos.size(); i++) {
-                produtos.get(i).salvar();
+                produtos.get(i).salvarOuAtualizar();
             }
         }catch( HibernateException he){
             return false; // TODO indicar quais não foram possíveis salvar ao invés de retornar false

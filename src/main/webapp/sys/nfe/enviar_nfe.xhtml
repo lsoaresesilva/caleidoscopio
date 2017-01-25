@@ -3,20 +3,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
     <h:head>
         <title>Facelet Title</title>
     </h:head>
     <h:body>
-        <ui:include src="../menu.xhtml" />
-        <p:panel>
-            <h:form enctype="multipart/form-data">
-                <p:growl id="growl" showDetail="true" sticky="true" />  
-                <p:fileUpload value="#{nfController.notaFiscal.nfeArquivo}"  mode="simple" required="true" requiredMessage="É preciso selecionar uma nota fiscal para envio."></p:fileUpload>
-                <p:separator/>
-                <h:commandButton value="Enviar" action="#{nfController.gerenciarEnvio()}"></h:commandButton>
-            </h:form>
-        </p:panel>
+        <b:container>
+            <ui:include src="../menu.xhtml" />
+            <p:panel>
+                <h:form enctype="multipart/form-data">
+                    <p:growl id="growl" showDetail="true" sticky="true" />  
+                    <p:fileUpload value="#{nfController.notaFiscal.nfeArquivo}"  mode="simple" required="true" requiredMessage="É preciso selecionar uma nota fiscal para envio."></p:fileUpload>
+                    <p:separator/>
+                    <h:commandButton value="Enviar" action="#{nfController.carregarNFE()}"></h:commandButton>
+                </h:form>
+            </p:panel>
+        </b:container>
     </h:body>
 </html>
 

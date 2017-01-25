@@ -24,6 +24,7 @@ public class VendaProdutoDeSerializer implements JsonDeserializer<VendaProduto> 
     @Override
     public VendaProduto deserialize(JsonElement je, Type type, JsonDeserializationContext jdc) throws JsonParseException {
         final JsonObject jsonObject = (JsonObject)je;
+        String vendaProdutoToken = jsonObject.get("token").getAsString();
         String vendaToken = jsonObject.get("venda_id").getAsString();
         Venda v = (Venda)Venda.getByToken(Venda.class, vendaToken);
         String produtoToken = jsonObject.get("produto_id").getAsString();
@@ -31,6 +32,7 @@ public class VendaProdutoDeSerializer implements JsonDeserializer<VendaProduto> 
         int quantidadeCompra = jsonObject.get("quantidadeCompra").getAsInt();
         double desconto = jsonObject.get("desconto").getAsDouble();
         VendaProduto vp = new VendaProduto(v, p);
+        vp.setToken(vendaProdutoToken);
         vp.setQuantidadeCompra(quantidadeCompra);
         vp.setDesconto(desconto);
         return vp;

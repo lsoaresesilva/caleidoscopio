@@ -33,11 +33,6 @@ public class UsuarioController {
     public void init(){
         usuario = new Usuario();
     }
-    
-    public String cadastrar(){
-        usuario.salvar();
-        return "";
-    }
 
     public Usuario getUsuario() {
         return usuario;

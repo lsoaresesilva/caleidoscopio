@@ -1,0 +1,33 @@
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui">
+    <p:dialog header="Informações do lançamento financeiro" widgetVar="lfDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+        <h:form id="dialogLancamentosFinanceirosDetalhes">
+            <p:outputPanel id="detalhesLancamentoFinanceiro" style="text-align:center;" >
+
+                <p:panelGrid columns="2" >
+
+                    <h:outputLabel value="Data"/>
+                    <h:inputText value="#{lfController.lancamentoSelecionado.data}" converter="localDateConverter"/>
+                    <h:outputLabel value="Descrição"/>
+                    <h:inputText value="#{lfController.lancamentoSelecionado.descricao}" />
+                    <h:outputLabel value="Valor"/>
+                    <h:inputText value="#{lfController.lancamentoSelecionado.valor}" />
+                    <h:outputLabel value="Tipo"/>
+                    
+                            <p:selectOneMenu title="Selecione o estoque" value="#{lfController.lancamentoSelecionado.tipo}" widgetVar="valorEstoqueSelecionado" label="Selecione um valor" onchange="PF('produtosWidget').filter()" panelStyle="width:125px" >
+                                <f:selectItems value="#{lfController.tiposLancamentos}" />
+                            </p:selectOneMenu>
+                        
+                    
+                    <p:commandButton value="Salvar" action="#{lfController.salvarOuAtualizar()}" oncomplete="PF('lfDialog').hide()" update="growl :listagemLancamentosFinanceiros:lancamentosFinanceirosCadastrados"/>
+                </p:panelGrid>
+
+            </p:outputPanel>
+        </h:form>
+    </p:dialog> 
+</ui:composition>
+

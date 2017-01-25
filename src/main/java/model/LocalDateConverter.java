@@ -7,6 +7,7 @@ package model;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
@@ -17,19 +18,34 @@ import javax.faces.convert.FacesConverter;
  * @author macbookair
  */
 @FacesConverter("localDateConverter")
-public class LocalDateConverter implements Converter{
+public class LocalDateConverter implements Converter {
 
     @Override
     public Object getAsObject(FacesContext fc, UIComponent uic, String string) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        //formatter = formatter.withLocale( Locale. );
-       
-        return LocalDate.parse(string, formatter);
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate dataOriginal = LocalDate.parse(string, formatter);
+
+            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate dataFinal = LocalDate.parse(dataOriginal.format(formatter));
+            return dataFinal;
+        } catch (DateTimeParseException de) {
+            return null;
+        }
+
     }
 
     @Override
     public String getAsString(FacesContext fc, UIComponent uic, Object o) {
-        return o.toString();
+        if (o instanceof LocalDate) {
+
+            DateTimeFormatter formatter
+                    = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            return ((LocalDate) o).format(formatter);
+        } else {
+            return "";
+        }
+
     }
-    
+
 }

@@ -21,6 +21,7 @@ import javax.faces.bean.RequestScoped;
 import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.persistence.Transient;
 import javax.ws.rs.Consumes;
@@ -29,8 +30,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.Cliente;
+import model.Fidelidade;
 import model.FormaPagamento;
 import model.Produto;
+import model.ResgatePontosFidelidade;
 import model.Venda;
 import model.Usuario;
 import model.VendaDeSerializer;
@@ -41,18 +44,18 @@ import org.primefaces.component.calendar.Calendar;
 import org.primefaces.event.FlowEvent;
 import org.primefaces.event.DateViewChangeEvent;
 import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
 /**
  *
  * @author macbookair
  */
-@ManagedBean
+@ManagedBean(name="vendaController")
 @ViewScoped 
 @Path("/vendas")
-public class VendaController {
+public class VendaController extends DataAbstraction{
     
     private Venda venda;
-    private Date dataPesquisaInicio = null;
-    private Date dataPesquisaTermino = null;
+    
     private boolean utilizarCupomDesconto;
     @ManagedProperty(value="#{clienteController}")
     private ClienteController cliente;
@@ -104,30 +107,9 @@ public class VendaController {
         this.cliente = cliente;
     }
 
-    public Date getDataPesquisaTermino() {
-        return dataPesquisaTermino;
-    }
-
-    public void setDataPesquisaTermino(Date dataPesquisaTermino) {
-        this.dataPesquisaTermino = dataPesquisaTermino;
-    }
-
-    public Date getDataPesquisaInicio() {
-        return dataPesquisaInicio;
-    }
-
-    public void setDataPesquisaInicio(Date dataPesquisaInicio) {
-        this.dataPesquisaInicio = dataPesquisaInicio;
-    }
     
-    public void atualizarDataSelecionada(SelectEvent event) {
-        Calendar c = (Calendar)event.getSource();
-        Date date = (Date) event.getObject();
-        if( c.getId().equals("popup") )
-            this.dataPesquisaInicio = date;
-        else
-            this.dataPesquisaTermino = date;
-    }
+    
+    
 
     public Venda getVenda() {
         return venda;
@@ -145,9 +127,25 @@ public class VendaController {
         this.produtoTemporario = produtoTemporario;
     }
     
+    public double calcularDescontoPontosFidelidade(){ 
+        return Fidelidade.calcularDescontoComSaldoPontosFidelidade(venda.getCliente());
+    }
+    
+    public double calcularPontuacao(){ 
+        return Fidelidade.calcularPontuacao(venda.getCliente());
+    }
+    
+    /**
+     * É invocado pelo controlador ao remzover um cliente previamente selecionado na venda.
+     * @param event 
+     */
+    public void tirarCliente(AjaxBehaviorEvent event){
+        this.venda.setCliente(null);
+    }
+    
     public void selecionarCliente(SelectEvent event) {
         Cliente clienteSelecionado = (Cliente)event.getObject();
-        cliente.setCliente(clienteSelecionado);
+        this.venda.setCliente(clienteSelecionado);
     }
     
     public List<Produto> filtrarProdutos(String consulta){
@@ -197,9 +195,9 @@ public class VendaController {
         FacesContext context = FacesContext.getCurrentInstance();
         if ( this.venda.validar()) {
             
-            if (this.venda.salvar()) {
+            if (this.venda.salvarOuAtualizar()) {
                 if (context != null) 
-                    context.addMessage(null, new FacesMessage("Success", "Venda realizada com sucesso!"));
+                    context.addMessage(null, new FacesMessage("Successo", "Venda realizada com sucesso!"));
                 return "listagem_vendas.xhtml";
             } else if (context != null) {
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Houve uma falha ao cadastrar a venda. Por gentileza, refaça a operação."));
@@ -214,10 +212,10 @@ public class VendaController {
     }
     
     public List<Venda> listarVendasPorData(){
-        if( dataPesquisaInicio == null && dataPesquisaTermino == null) // Irá retornar todas as vendas cadastradas
+        if( dataInicio == null || dataTermino == null) // Irá retornar todas as vendas cadastradas
             return this.venda.listarTodos();
         else{
-            return Venda.listarVendasPorData(dataPesquisaInicio.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), dataPesquisaTermino.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            return Venda.listarVendasPorData(dataInicio.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), dataTermino.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         }
     }
     
@@ -240,11 +238,8 @@ public class VendaController {
         }
     }
     
-    public void definirCupomDesconto(ValueChangeEvent e){
-        if( this.utilizarCupomDesconto == true )
-            this.venda.setCupomDesconto(this.venda.getCliente().calcularPremiacao());
-        else
-            this.venda.setCupomDesconto(0.0);
+    public void definirCupomDesconto(){
+        this.venda.utilizarPontosFidelidade(utilizarCupomDesconto);
     }
     
     @POST
@@ -258,8 +253,9 @@ public class VendaController {
         Response r = Response.serverError().build();
         try {
             Venda v = gson.fromJson(json, Venda.class);
-            // TODO fazer um parse no objeto e ver se está tudo validado antes de salvar
-            v.salvar();
+            if( ! v.salvarVendaPDV() ){
+                return r;
+            }
             r = Response.ok().build();
             return r;
         } catch (HibernateException he) {

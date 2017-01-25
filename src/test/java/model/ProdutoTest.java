@@ -81,7 +81,7 @@ public class ProdutoTest {
         assertEquals(qtdAtual,qtdAnterior+p.getQuantidadeEstoque() );
     }
     
-    @Test
+    //@Test
     public void testSalvarProduto(){
         Produto p = new Produto();
         Fornecedor f = new Fornecedor();
@@ -96,7 +96,7 @@ public class ProdutoTest {
         
     }
     
-    @Test
+    //@Test
     public void testDeletar(){
         Produto p = new Produto();
         

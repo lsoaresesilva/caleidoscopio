@@ -12,6 +12,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
+import javax.faces.event.ActionEvent;
 import model.ComissaoVendedor;
 import model.Usuario;
 import model.Venda;
@@ -22,9 +23,10 @@ import model.Venda;
  */
 @ManagedBean
 @ViewScoped
-public class RelatorioController {
+public class RelatorioController extends DataAbstraction{
 
     private ComissaoVendedor comissaoVendedor;
+    
 
     public ComissaoVendedor getComissaoVendedor() {
         return comissaoVendedor;
@@ -38,9 +40,14 @@ public class RelatorioController {
         comissaoVendedor = new ComissaoVendedor();
     }
     
-    public double calcularComissao(){
+    public void calcularComissao(ActionEvent e){
+        if( this.getDataInicio() != null && this.getDataTermino() != null ){
+            this.comissaoVendedor.setDataInicio(dataInicio);
+            this.comissaoVendedor.setDataTermino(dataTermino);
+        }
+            
         // Recuperar todas as vendas entre data início e data término daquele vendedor
-        return comissaoVendedor.calcularComissao();
+        comissaoVendedor.calcularComissao();
         
     }
     

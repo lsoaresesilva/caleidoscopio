@@ -4,26 +4,25 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
     <h:head>
         <title>Facelet Title</title>
+        
     </h:head>
     <h:body>
+        <b:container>
         <ui:include src="../menu.xhtml"/>
         <p:panel>
+            <ui:include src='../data/selecionar_data.xhtml' >
+                    <ui:param name="controlador" value="#{vendaController}" />
+                    <ui:param name="update" value=":listagemVendas:vendasRealizadas" />
+                </ui:include>
             <h:form id="listagemVendas">
                 <p:growl id="growl" showDetail="true" sticky="true" />  
+
                 
-                <p:outputLabel for="popup" value="Data" />
-                <p:commandButton id="btnData" value="Selecionar data" type="button" onclick="PF('dlg1').show();" />
-                <p:dialog header="Selecione a data de início e término" widgetVar="dlg1" minHeight="40">
-                    <p:calendar title="Data início" showOn="button" showButtonPanel="true" id="popup" value="#{vendaController.dataPesquisaInicio}" showTodayButton="true" widgetVar="dataPesquisada">
-                        <p:ajax event="dateSelect" listener="#{vendaController.atualizarDataSelecionada}" update=":listagemVendas:vendasRealizadas"/>
-                    </p:calendar>
-                    <p:calendar title="Data término" showOn="button" id="toDate" value="#{vendaController.dataPesquisaTermino}">
-                        <p:ajax event="dateSelect" listener="#{vendaController.atualizarDataSelecionada}" update=":listagemVendas:vendasRealizadas"/>
-                    </p:calendar>
-                </p:dialog>
+                
                 <p:dataTable id="vendasRealizadas" var="venda" 
                              value="#{vendaController.listarVendasPorData()}" 
                              rows="10"
@@ -36,32 +35,34 @@
                              rowsPerPageTemplate="25,50,100"
                              tableStyleClass="table"
                              >
-                    <p:column headerText="Data">
+                    <p:column width="10%" headerText="Data" sortBy="#{venda.dataCriacao}">
                         <h:outputLabel value="#{venda.getDataFormatada()}" />
                     </p:column>
-                    <p:column headerText="Valor total">
-                        <h:outputLabel value="#{venda.calcularValorTotalComDesconto()}" />
+                    <p:column width="30%" headerText="Cliente">
+                        <h:outputLabel value="#{venda.cliente}" />
                     </p:column>
-                    <p:column headerText="Forma de pagamento">
+                    <p:column width="10%" headerText="Forma de pagamento">
                         <h:outputLabel value="#{venda.formaPagamento.recuperarString()}" />
                     </p:column>
-                    <p:column style="width:32px;text-align: center">
+                    <p:column width="10%" headerText="Valor total">
+                        <h:outputLabel value="#{venda.calcularValorFinal()}" />
+                    </p:column>
+                    <p:column width="10%" style="text-align: center">
                         <p:commandButton update=":dialogVendasDetalhes:detalhesVendas" oncomplete="PF('vendaDialog').show()" icon="ui-icon-search" title="Visualizar">
                             <f:setPropertyActionListener value="#{venda}" target="#{vendaController.venda}" />
                             <f:setPropertyActionListener value="#{venda.dataCriacao}" target="#{vendaController.venda.dataCriacao}" />
                         </p:commandButton>
-                    </p:column>
-                    <p:column style="width:32px;text-align: center">
+                    
                         <p:commandButton update=":listagemVendas:vendasRealizadas" action="#{vendaController.excluirVenda()}" icon="ui-icon-closethick" title="Excluir">
                             <f:setPropertyActionListener value="#{venda}" target="#{vendaController.venda}" />
                             <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir a venda?" icon="ui-icon-alert" />
                         </p:commandButton>
                     </p:column>
                     <p:summaryRow>
-                        <p:column colspan="2" style="text-align:right">
-                            <h:outputText value="Total:" />
+                        <p:column colspan="3" style="text-align:right">
+                            <h:outputText value="Total no dia:" />
                         </p:column>
-                        <p:column>
+                        <p:column colspan="2">
                             <h:outputText value="#{vendaController.venda.calcularValorTotalData(venda.dataCriacao)}">
                                 <f:convertNumber type="currency" currencySymbol="R$" />
                             </h:outputText>
@@ -106,6 +107,8 @@
             </p:dialog>
             
         </p:panel>
+        </b:container>
+
     </h:body>
 </html>
 

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -54,8 +55,14 @@ public class NotaFiscalController implements Serializable{
     }
     
     
-    
-    public String gerenciarEnvio(){
+    /**
+     * Faz a leitura do XML da NFE enviada.
+     * Extrai os produtos da nota;
+     * Calcula o preço de venda;
+     * Exibe toda a extração para o usuário ajustar antes de salvar os produtos no BD.
+     * @return 
+     */
+    public String carregarNFE(){
         FacesContext context = FacesContext.getCurrentInstance();
         if( this.notaFiscal.gerenciarEnvioNfe() ){
             return "listagem_produtos.xhtml";
@@ -77,15 +84,16 @@ public class NotaFiscalController implements Serializable{
         this.notaFiscal = notaFiscal;
     }
     
+    public double valorAnteriorProduto( String codigo){
+        return Produto.valorProdutoCadastrado(codigo);
+    }
+    
     public String salvar(){
         FacesContext context = FacesContext.getCurrentInstance();
-        // Verificar Quem estiver com o check selecionado
-        // Se já estiver cadastrado, pega o estoque antigo e incrementa
-        // Se não tiver, salva
-        // Quem não estiver checado e estiver cadastrado, pega o estoque antigo e mantém 
+        
         if( this.notaFiscal.salvarProdutosBD() ){
             if( context != null)
-                context.addMessage(null, new FacesMessage("Success", "Produtos cadastrados com sucesso"));
+                context.addMessage(null, new FacesMessage("Sucesso", "Produtos cadastrados com sucesso"));
             this.notaFiscal = new NotaFiscal();
             return "/sys/produtos/listagem_produtos";
         }else{

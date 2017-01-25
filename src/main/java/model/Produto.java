@@ -74,7 +74,7 @@ public class Produto extends Model implements Serializable {
     @Expose
     private double valorUnitarioVenda;
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "categoria_id") 
+    @JoinColumn(name = "categoria_id")
     private CategoriaProduto categoria;
 
     public static enum VALORES_POSSIVEIS_ESTOQUE {
@@ -137,6 +137,15 @@ public class Produto extends Model implements Serializable {
         this.margemLucro = 20;
     }
 
+    public static double valorProdutoCadastrado(String codigo) {
+        Produto p = Produto.getByCodigo(codigo);
+        if (p != null) {
+            return p.getValorUnitarioVenda();
+        }
+
+        return 0.0;
+    }
+
     public static ArrayList<Produto> extrairProdutosNfe(InputStream is, NotaFiscal nfe) {
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -167,9 +176,7 @@ public class Produto extends Model implements Serializable {
                 NodeList codigoProdutoNode = produtoEment.getElementsByTagName("cProd");
                 String codigoProduto = codigoProdutoNode.item(0).getTextContent();
                 Produto produtoBancoDados = Produto.getByCodigo(codigoProduto);
-                
-                
-                
+
                 NodeList nomeProdutoNode = produtoEment.getElementsByTagName("xProd");
                 String nomeProduto = nomeProdutoNode.item(0).getTextContent();
                 NodeList ncmProdutoNode = produtoEment.getElementsByTagName("NCM");
@@ -289,8 +296,6 @@ public class Produto extends Model implements Serializable {
                     }
                 }
 
-                
-
                 Produto produtoNota = new Produto();
                 produtoNota.setAliquotaICMS(valorICMSProduto);
                 produtoNota.setAliquotaIPI(valorIPIProduto);
@@ -302,9 +307,13 @@ public class Produto extends Model implements Serializable {
                 produtoNota.setQuantidadeEstoque(quantidadeProduto);
                 produtoNota.calcularValorVenda();
                 produtoNota.setFornecedor(fornecedor);
-                // Tentará obter a categoria do produto de um outro já cadastrado
-                if( produtoBancoDados != null ){
+
+                // Tentará obter a categoria do produto a partir de um cadastro anterior
+                if (produtoBancoDados != null && produtoBancoDados.getCategoria() != null) {
                     produtoNota.setCategoria(produtoBancoDados.getCategoria());
+                } else {
+                    // Inferir a categoria. Pode usar expressão regular.
+                    // Percorrer todas as categorias, e para cada uma delas, verificar se alguma parte do nome está contida no nome do produto. Selecionar o primeiro caso.
                 }
                 produtosNfe.add(produtoNota);
             }
@@ -506,8 +515,6 @@ public class Produto extends Model implements Serializable {
     public void setCategoria(CategoriaProduto categoria) {
         this.categoria = categoria;
     }
-    
-    
 
     public static List<Produto> pesquisarPorNome(String nome) {
         Session session = Model.abrirSessao();
@@ -685,17 +692,13 @@ public class Produto extends Model implements Serializable {
 
     }
 
-    public boolean salvar() {
+    @Override
+    public boolean salvarOuAtualizar() {
 
         try {
             Produto p = Produto.getByCodigo(this.getCodigo());
             if (p == null) {
-                Session session = abrirSessao();
-                session.beginTransaction();
-
-                session.save(this);
-                session.getTransaction().commit();
-                session.close();
+                this.salvar();
                 return true;
             } else {
                 p.setQuantidadeEstoque(p.getQuantidadeEstoque() + this.getQuantidadeEstoque());

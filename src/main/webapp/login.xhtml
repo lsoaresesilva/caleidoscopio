@@ -3,7 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <title>Facelet Title</title>
         <style>
@@ -21,15 +23,47 @@
     <h:body>
         
         <h:form>
-            
-            <p:panelGrid columns="1"  styleClass="centered">
-                <p:growl id="growl" showDetail="true" sticky="true" />  
-                <h:outputLabel value="E-mail"/>
-                <p:inputText id="email" value="${loginController.usuario.email}" required="true" requiredMessage="É preciso informar o login."/>
-                <h:outputLabel value="Senha"/>
-                <p:inputText id="senha" value="${loginController.usuario.senha}" type="password" required="true" requiredMessage="É preciso informar a senha."/>
-                <p:commandButton value="Entrar" action="#{loginController.fazerLogin()}" update="growl"/>
-            </p:panelGrid>
+            <b:growl id="growl" showDetail="true"/>  
+            <b:container >
+                <b:row styleClass="show-grid">
+                    <b:column offset="3" col-md="6">
+                        <b:panel title="Acessar o sistema" look="primary">
+                            <b:row>
+                                <b:column offset="3" col-md="2">
+                                    <h:outputLabel value="E-mail"/>
+                                </b:column>
+                                <b:column col-md="4">
+                                    <b:inputText placeholder="E-mail" id="email" value="${loginController.usuario.email}">
+                                        <f:facet name="prepend">
+                                            <b:icon name="user" />
+                                        </f:facet>
+                                    </b:inputText>
+                                </b:column>
+                            </b:row>
+                            <b:row>
+                                <b:column offset="3" col-md="2">
+                                    <h:outputLabel value="Senha"/>
+                                </b:column>
+                                <b:column span="4">
+                                    <b:inputSecret placeholder="Senha" id="senha" value="${loginController.usuario.senha}"
+                                                   >
+                                        <f:facet name="prepend">
+                                            <b:iconAwesome name="key" />
+                                        </f:facet>
+                                    </b:inputSecret>
+                                </b:column>
+                            </b:row>
+                            <b:row>
+                                <b:column span="4" offset="5">
+                                    <p:commandButton value="Entrar" update="growl" 
+                                                     style="width:100%" 
+                                                     action="#{loginController.fazerLogin()}" />
+                                </b:column>
+                            </b:row>
+                        </b:panel>
+                    </b:column>
+                </b:row>
+            </b:container>
             
         </h:form>
     </h:body>

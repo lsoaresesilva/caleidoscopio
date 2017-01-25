@@ -29,7 +29,7 @@
                                     <h:inputText value="#{produtoController.produto.descricao}" />
                                     <h:outputLabel value="Quantidade em estoque"/>
                                     <h:inputText value="#{produtoController.produto.quantidadeEstoque}" />
-                                    <p:commandButton value="Salvar" actionListener="#{produtoController.salvarOuAtualizar()}" oncomplete="PF('produtoDialog').hide()" ajax="false"/>
+                                    <p:commandButton value="Salvar" action="#{produtoController.salvarOuAtualizar()}" oncomplete="PF('produtoDialog').hide()" update="growl"/>
                                 </p:panelGrid>
                             
                         </p:tab>
@@ -49,6 +49,6 @@
                     </p:tabView>
                 </p:outputPanel>
                     </h:form>
+            <p:ajax event="close" listener="#{produtoController.gerenciarFechamentoDialog}"/>
             </p:dialog> 
 </ui:composition>
-

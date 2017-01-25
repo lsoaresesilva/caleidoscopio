@@ -19,7 +19,7 @@ public class ModelTest {
     }
 
     
-    @Test
+    //@Test
     public void testModelExiste() {
         Produto p = new Produto();
         p.setToken("0a2f61b3-8808-4f14-aff4-e84c1deddafe");

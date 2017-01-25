@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
+    <h:head>
+        <title>Contas a pagar e receber</title>
+    </h:head>
+    <h:body>
+        <b:container>
+        <ui:include src="../menu.xhtml" />
+        <p:panel>
+            <p:growl id="growl" showDetail="true" sticky="true" />  
+            <h:form id="listagemLancamentosFinanceiros">
+                <p:panel id="operacoesLancamentosFinanceiros">
+                <p:commandButton value="Inserir" update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro" oncomplete="PF('lfDialog').show()" />
+                </p:panel>
+                <p:dataTable  id="lancamentosFinanceirosCadastrados" var="lf" 
+                              value="#{lfController.listarLancamentos()}" 
+                             rows="10"
+                             emptyMessage="Nenhum lançamento financeiro cadastrado."
+                             paginator="true"
+                             rowKey="#{lf.token}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             rowsPerPageTemplate="25,50,100"
+                             
+                             >
+                    <p:column width="10%" headerText="Data" filterBy="#{lf.data}" filterStyle="width:100%">
+                        <h:outputText value="#{lf.data}" converter="localDateConverter"/>
+                    </p:column>
+                    <p:column width="25%" headerText="Descricao" filterMatchMode="contains" filterBy="#{cliente.descricao}" filterStyle="width:100%">
+                        <h:outputText value="#{lf.descricao}" />
+                    </p:column>
+                    <p:column width="7%" headerText="Valor">
+                        <h:outputText value="#{lf.valor}" />
+                    </p:column>
+                    <p:column width="5%" headerText="Tipo" filterBy='#{lf.tipo}'>
+                        <h:outputText value="#{lf.tipo.label}" />
+                    </p:column>
+                    
+                    <p:column width="5%" style="text-align: center">
+                        <p:commandButton update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro" oncomplete="PF('lfDialog').show()" icon="ui-icon-search" title="Visualizar">
+                            <f:setPropertyActionListener value="#{lf}" target="#{lfController.lancamentoSelecionado}" />
+                        </p:commandButton>
+                    
+                        <p:commandButton update=":listagemLancamentosFinanceiros:lancamentosFinanceirosCadastrados" action="#{lfController.excluir()}" icon="ui-icon-closethick" title="Excluir">
+                            <f:setPropertyActionListener value="#{lf}" target="#{lfController.lancamentoSelecionado}" />
+                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o lançamento?" icon="ui-icon-alert" />
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                </p:confirmDialog>
+            </h:form>
+            <ui:include src="visualizar.xhtml" />
+        </p:panel>
+        </b:container>
+    </h:body>
+</html>
+

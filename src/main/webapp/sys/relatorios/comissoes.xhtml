@@ -3,19 +3,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
     <h:head>
         <title>Facelet Title</title>
     </h:head>
     <h:body>
         <ui:include src="../menu.xhtml"/>
         <p:panel>
-            <h:form>
+           <ui:include src='../data/selecionar_data.xhtml' >
+                    <ui:param name="controlador" value="#{relatorioController}" />
+                    <ui:param name="update" value="" />
+                </ui:include>
+            <h:form id='comissaoVendas'>
                 <p:panelGrid columns="2">
-                    <h:outputLabel value="Data início" />
-                    <p:calendar id="dataInicio" value="#{relatorioController.comissaoVendedor.dataInicio}" mode="inline" navigator="true" />
-                    <h:outputLabel value="Data término" />
-                    <p:calendar id="dataTermino" value="#{relatorioController.comissaoVendedor.dataTermino}" mode="inline" navigator="true" />
+                    
                     <h:outputLabel value="Vendedor"/>
                     <p:autoComplete id="acVendedor" 
                                     value="#{relatorioController.comissaoVendedor.usuarioComissao}" 
@@ -28,8 +30,8 @@
                                     requiredMessage="É preciso informar o vendedor."/>
                     <h:outputLabel value="Percentual de comissão" />
                     <p:inputNumber value="#{relatorioController.comissaoVendedor.percentualComissao}" />
-                    <p:commandButton value="Calcular" update=":valorComissaoVendedor" actionListener="#{relatorioController.calcularComissao}" />
-
+                    <p:commandButton value="Calculara" update=":valorComissaoVendedor" actionListener="#{relatorioController.calcularComissao}" />
+                    
 
                 </p:panelGrid>
             </h:form>

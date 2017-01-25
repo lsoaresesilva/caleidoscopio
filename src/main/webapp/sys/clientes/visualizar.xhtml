@@ -19,9 +19,9 @@
                                     <h:outputLabel value="Telefone"/>
                                     <h:inputText value="#{clienteController.cliente.telefone}" />
                                     <h:outputLabel value="Data de aniversário"/>
-                                    <h:inputText value="#{clienteController.cliente.dataAniversario}" 
+                                    <h:inputText value="#{clienteController.cliente.dataNascimento}" 
                                                  converter="localDateConverter"/>
-                                    <p:commandButton value="Salvar" actionListener="#{clienteController.salvarOuAtualizar()}" oncomplete="PF('produtoDialog').hide()" ajax="false"/>
+                                    <p:commandButton value="Salvar" action="#{clienteController.salvarOuAtualizar()}" oncomplete="PF('clienteDialog').hide()" update="growl :listagemClientes:clientesCadastrados"/>
                                 </p:panelGrid>
                             
                         </p:tab>

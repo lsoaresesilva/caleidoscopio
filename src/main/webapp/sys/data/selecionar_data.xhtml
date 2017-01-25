@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:b="http://bootsfaces.net/ui">
+    <script>
+        function adjustPositionandOpenDialog(currentDialog, commandSource) {
+
+            //var botao = $("#listagemVendas\\:btnData");
+            var botao = $("#btnData");
+            var posicao = botao.offset();
+            var myDialogX = botao.left;
+            var myDialogY = posicao.top;
+            //$("#listagemVendas\\:dialogData").offset( 'option', 'position', [myDialogX, myDialogY] );
+            $("#dialogData").offset({top: myDialogX, left: myDialogY});
+            $("#dialogData").show();
+        }
+    </script>
+    <h:form prependId="false">
+        <p:commandButton id="btnData"  value="#{(empty controlador.dataInicio or empty controlador.dataTermino)?'Selecionar data':controlador.getDataExibicao()}" type="button" onclick="adjustPositionandOpenDialog($('#dialogData'), $('#btnData'))" />
+        <p:dialog resizable="false;" header="Selecione a data de início e término" widgetVar="dlg1" minHeight="40" id="dialogData">
+            <p:panelGrid columns="2">
+                <p:calendar mode="inline" locale="pt" title="Data início" showOn="button" showButtonPanel="true" id="popup" value="#{controlador.dataInicio}" showTodayButton="true" widgetVar="dataPesquisada">
+                    <p:ajax event="dateSelect" listener="#{controlador.atualizarDataSelecionada}" update="#{update} btnData"/>
+                </p:calendar>
+                <p:calendar mode="inline" locale="pt" title="Data término" showOn="button" showButtonPanel="true" id="toDate" value="#{controlador.dataTermino}" showTodayButton="true">
+                    <p:ajax event="dateSelect" listener="#{controlador.atualizarDataSelecionada}" update="#{update} btnData" oncomplete="PF('dlg1').hide();"/>
+                </p:calendar>
+            </p:panelGrid>
+        </p:dialog>
+    </h:form>
+</ui:composition>

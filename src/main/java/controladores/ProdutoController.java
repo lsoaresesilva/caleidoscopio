@@ -21,6 +21,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import model.CategoriaProduto;
 import model.FormaPagamento;
+import model.LancamentoFinanceiro;
 import model.Produto;
 import model.Venda;
 import model.VendaProduto;
@@ -38,6 +39,10 @@ public class ProdutoController {
     String valorSelecionadoEstoque; //TODO ver como nào precisar dessa variável no filtro select
     
     private List<Produto> filteredProducts;
+    
+    public void gerenciarFechamentoDialog(){
+        this.produto = new Produto();
+    }
 
     public String getValorSelecionadoEstoque() {
         return valorSelecionadoEstoque;
@@ -78,22 +83,17 @@ public class ProdutoController {
     
     public void salvarOuAtualizar(){
         FacesContext context = FacesContext.getCurrentInstance();
-        if(this.produto.getToken().equals("")){
-            if( this.produto.salvar() ){
-                if (context != null) 
-                    context.addMessage(null, new FacesMessage("Operação com sucesso", "Produto inserido com sucesso!"));
-                this.produto = new Produto();
-            }else
-                if (context != null) 
-                    context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível inserir o produto. Tente novamente."));
-        }else{
-            if( this.produto.atualizar() ){
-                if (context != null) 
-                    context.addMessage(null, new FacesMessage("Operação com sucesso", "Produto atualizado com sucesso!"));
-                this.produto = new Produto();
-            }else
-                if (context != null) 
-                    context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível atualizar o produto. Tente novamente."));
+        boolean sucesso = this.produto.salvarOuAtualizar();
+
+        if (sucesso) {
+            if (context != null) {
+                context.addMessage(null, new FacesMessage("Sucesso", "Produto atualizado com sucesso!"));
+            }
+            this.produto = new Produto();
+        } else {
+            if (context != null) {
+                context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível atualizar o produto. Tente novamente."));
+            }
         }
         
     }

@@ -6,34 +6,43 @@
     xmlns:p="http://primefaces.org/ui"
     xmlns:b="http://bootsfaces.net/ui">
     
-    <h:form>
-        <b:navBar brandHref="#">
-            <b:navbarLinks>
-                <b:dropMenu value="Vendas">
-                    <b:navLink value="Nova" href="sys/vendas/nova_venda.xhtml"></b:navLink>
-                    <b:navLink value="Listar" href="sys/vendas/listagem_vendas"></b:navLink>
-                </b:dropMenu>
-                <b:navLink value="Produtos" href="sys/produtos/listagem_produtos"></b:navLink>
-                <b:dropMenu value="Relatórios">
-                    <b:navLink value="Comissões" href="sys/relatorios/comissoes"></b:navLink>
-                </b:dropMenu>
-                <b:dropMenu value="Clientes">
-                    <b:navLink value="Listar" href="sys/clientes/listagem"></b:navLink>
-                </b:dropMenu>
-                <b:dropMenu value="Fidelidade">
-                    <b:navLink value="Pontuações" href="sys/fidelidade/listagem"></b:navLink>
-                </b:dropMenu>
-                <b:dropMenu value="NFe">
-                    <b:navLink value="Cadastrar" href="sys/nfe/enviar_nfe"></b:navLink>
-                </b:dropMenu>
-                <b:navbarLinks pull="right"><b:navLink value="    " href="#"></b:navLink></b:navbarLinks>
-                <b:navbarLinks pull="right" styleClass="hidden-xs">
-                    
-                    <b:navLink value="Olá #{usuarioLogado.email}"/>
-                    
-                </b:navbarLinks>
-            </b:navbarLinks>
-        </b:navBar>
-    </h:form>
+    <b:row>
+        <b:column col-md="12">
+            <h:form>
+                <b:navBar brandHref="#">
+                    <b:navbarLinks>
+                        <b:dropMenu value="Vendas">
+                            <b:navCommandLink value="Nova" href="/Caleidoscopio/faces/sys/vendas/nova_venda.xhtml"></b:navCommandLink>
+                            <b:navCommandLink value="Listar" href="/Caleidoscopio/faces/sys/vendas/listagem_vendas.xhtml"></b:navCommandLink>
+                        </b:dropMenu>
+                        <b:navCommandLink value="Produtos" href="/Caleidoscopio/faces/sys/produtos/listagem_produtos.xhtml"></b:navCommandLink>
+                        
+                        <b:dropMenu value="Relatórios">
+                            <b:navCommandLink value="Comissões" href="/Caleidoscopio/faces/sys/relatorios/comissoes.xhtml"></b:navCommandLink>
+                        </b:dropMenu>
+                        <b:dropMenu value="Clientes">
+                            <b:navCommandLink value="Listar" href="/Caleidoscopio/faces/sys/clientes/listagem.xhtml"></b:navCommandLink>
+                        </b:dropMenu>
+                        <b:dropMenu value="Fidelidade">
+                            <b:navCommandLink value="Pontuações" href="/Caleidoscopio/faces/sys/fidelidade/listagem.xhtml"></b:navCommandLink>
+                        </b:dropMenu>
+                        <b:navCommandLink value="Lançamentos Financeiros" action="#{lfController.listar()}"></b:navCommandLink>
+                        <b:dropMenu value="NFe">
+                            <b:navCommandLink value="Cadastrar" href="/Caleidoscopio/faces/sys/nfe/enviar_nfe.xhtml"></b:navCommandLink>
+                        </b:dropMenu>
+                    </b:navbarLinks>
+                    <b:navbarLinks pull="right"><b:navLink value="    " href="#"></b:navLink></b:navbarLinks>
+                    <b:navbarLinks pull="right">
+                        <b:kebab>
+                            <b:listLinks>
+                                <b:navCommandLink value="Sair" action="#{loginController.fazerLogout()}"></b:navCommandLink>
+                                
+                            </b:listLinks>
+                        </b:kebab>
+                    </b:navbarLinks>
+                </b:navBar>
+            </h:form>
+        </b:column>
+    </b:row>
 </ui:composition>
 

@@ -4,119 +4,190 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:ui="http://java.sun.com/jsf/facelets">
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:b="http://bootsfaces.net/ui">
     <h:head>
         <title>Facelet Title</title>
         <script name="jquery/jquery.js" library="primefaces"></script>
-		
+
     </h:head>
     <h:body>
-        <ui:include src="../menu.xhtml"/>
-        
-        <p:panel>
-            <h:form id ="venda">
-                <p:growl id="growl" autoUpdate="true" showDetail="true" sticky="true" />  
-                <p:wizard widgetVar="wizard" 
-                          flowListener="#{vendaController.onFlowProcess}" 
-                          nextLabel="Próximo"
-                          backLabel="Anterior"
-                          >
-                    <p:tab id="personal" title="Produtos" >
-                        <p:panelGrid columns="3">
-                            <h:outputLabel value="Produto"/>
-                            <p:autoComplete id="acSimple" value="${vendaController.produtoTemporario}" itemValue="#{produto}" var="produto" itemLabel="#{produto.descricao}" completeMethod="#{vendaController.filtrarProdutos}" converter="produtoConverter" />
-                            <p:commandButton value="Adicionar" action="${vendaController.adicionarProduto()}" update=":venda:nfVenda :venda:valorTotalPanel" />
-                        </p:panelGrid>
-                        <p:panel>
-                            <h:outputLabel value="Vendedor ativo: #{usuarioLogado.email}"/>
-                            
-                        </p:panel>
-                        <p:panel id="nfVenda">
-                            <p:panelGrid columns="2" id="infoCliente">
-                                <h:outputLabel value="Cliente"/>
-                                <p:autoComplete id="clientePesquisa" 
-                                            value="${vendaController.venda.cliente}" 
-                                            itemValue="#{cliente}" 
-                                            var="cliente" 
-                                            itemLabel="#{cliente.nome}" 
-                                            completeMethod="#{clienteController.filtrar}" 
-                                            converter="clienteConverter" >
-                                    <p:ajax event="itemSelect" listener="#{vendaController.selecionarCliente}" update="infoCliente"/>
-                                </p:autoComplete>
+        <b:container>
+            <ui:include src="../menu.xhtml"/>
+
+            <b:row>
+                <b:column col-md="12">
+                    <h:form id ="venda">
+                        <b:panel title="Nova venda"
+                                 look="primary">
+                            <p:growl id="growl" autoUpdate="true" showDetail="true" sticky="true" />  
+                            <b:tabView  activeIndex="0" contentStyle="border-right: 1px solid #ddd;border-left: 1px solid #ddd;border-bottom: 1px solid #ddd;padding:10px">
+                                <b:tab id="personal" title="Produtos" >
+                                    <b:row>
+                                        <b:column col-md="2">
+                                            <h:outputLabel value="Produto"/>
+                                        </b:column>
+                                        <b:column col-md="2">
+                                            <p:autoComplete size="20" id="acSimple" value="${vendaController.produtoTemporario}" itemValue="#{produto}" var="produto" itemLabel="#{produto.descricao}" completeMethod="#{vendaController.filtrarProdutos}" converter="produtoConverter" />
+                                        </b:column>
+                                        <b:column col-md="2">
+                                            <p:commandButton value="Adicionar" action="${vendaController.adicionarProduto()}" update=":venda:nfVenda :venda:resumoVenda" />
+                                        </b:column>
+                                    </b:row>
+
+                                    <p:panel id="nfVenda">
+
+                                        <p:dataTable emptyMessage="Nenhum produto no carrinho." id="vendaProdutos" rowIndexVar="rowId" var="produto" value="${vendaController.venda.produtos}">
+                                            <p:column headerText="Produto" width="40%">
+                                                <h:outputText value="${produto.produto.descricao}" />
+                                            </p:column>
+                                            <p:column headerText="Valor unitário">
+                                                <h:outputText value="${produto.produto.valorUnitarioVenda}" />
+                                            </p:column>
+                                            <p:column headerText="Quantidade" width="10%">
+                                                <p:inputText id="quantidadeProduto"  style="width:100%" value="#{vendaController.venda.produtos.get(rowId).quantidadeCompra}"  >
+                                                    <p:ajax event="keyup" listener="#{vendaController.calcularDescontoProduto(rowId)}" update="subTotal :venda:resumoVenda"/>
+                                                </p:inputText>
+                                            </p:column>
+                                            <p:column headerText="% de desconto" >
+                                                <p:inputText id="percentualDesconto" style="width:100%" value="#{vendaController.venda.produtos.get(rowId).desconto}"  >
+                                                    <p:ajax event="keyup" listener="#{vendaController.calcularDescontoProduto(rowId)}" update="subTotal :venda:resumoVenda"/>
+                                                </p:inputText>
+                                            </p:column>
+
+                                            <p:column headerText="Subtotal">
+                                                <h:outputText id="subTotal" value="#{vendaController.venda.produtos.get(rowId).calcularValorComDesconto()}" />
+                                            </p:column>
+                                            <p:column>
+                                                <p:commandButton value="Apagar" icon="ui-icon-circle-close" actionListener="#{vendaController.removerProduto(rowId)}" update=":venda:nfVenda :venda:resumoVenda" />
+                                            </p:column>
+                                        </p:dataTable>
+
+                                    </p:panel>
+
+                                </b:tab>
+                                <b:tab title="Fidelidade">
+                                    <b:row id="infoCliente">
+                                        <b:column col-md="12">
+                                            <b:row>
+                                                <b:column col-md="2">
+                                                    <h:outputLabel value="Cliente"/>
+                                                </b:column>
+
+
+                                                <b:column col-md="2">
+                                                    <p:autoComplete id="clientePesquisa" 
+                                                                    value="${vendaController.venda.cliente}" 
+                                                                    itemValue="#{cliente}" 
+                                                                    var="cliente" 
+                                                                    itemLabel="#{cliente.nome}" 
+                                                                    completeMethod="#{clienteController.filtrar}" 
+                                                                    converter="clienteConverter"
+
+                                                                    >
+                                                        <p:ajax event="itemSelect" listener="#{vendaController.selecionarCliente}" update="infoCliente"/>
+                                                        <p:ajax event="change" listener="#{vendaController.tirarCliente}" update="infoCliente" />
+                                                    </p:autoComplete>
+
+                                                </b:column>
+                                            </b:row>
+                                            <b:row>
+                                                <b:column col-md="2">
+                                                    <h:outputLabel value="Pontos disponíveis"/>
+                                                </b:column>
+                                                <b:column col-md="1">
+                                                    <h:outputLabel id="labelPontoDisponivel" value="#{vendaController.calcularPontuacao()}"/>
+                                                </b:column>
+                                            </b:row>
+                                            <b:row>
+                                                <b:column col-md="2">
+                                                    <h:outputLabel value="Desconto disponível"/>
+                                                </b:column>
+                                                <b:column col-md="1">
+                                                    <h:outputLabel id="labelPremioDisponivel" value="#{vendaController.calcularDescontoPontosFidelidade()}"/>
+                                                </b:column>
+                                            </b:row>
+                                            <b:row>
+                                                <b:column col-md="2">
+                                                    <h:outputLabel value="Utilizar Prêmio?"/>
+                                                </b:column>
+                                                <b:column col-md="2">
+                                                    <p:selectBooleanCheckbox  value="#{vendaController.utilizarCupomDesconto}" >
+                                                        <p:ajax listener="#{vendaController.definirCupomDesconto}" update=":venda:resumoVenda"/>
+                                                    </p:selectBooleanCheckbox>
+                                                </b:column>
+                                            </b:row>
+                                        </b:column>
+                                    </b:row>
+
+                                </b:tab>
+                                <b:tab id="formaPagamento" title="Forma de pagamento">
+                                    <p:panel>
+                                        <p:panelGrid columns="2">
+                                            <h:outputLabel value="Forma de pagamento"/>
+                                            <p:autoComplete id="acPagamento" 
+                                                            value="#{vendaController.venda.formaPagamento}" 
+                                                            itemValue="#{formaPagamento}" 
+                                                            var="formaPagamento" 
+                                                            itemLabel="#{formaPagamento.recuperarString()}" 
+                                                            converter="formaPagamentoConverter" 
+                                                            completeMethod="#{vendaController.filtrarFormasPagamento}" 
+                                                            />
+                                            <h:outputLabel value="Valor pago" />
+                                            <p:inputText binding="${pago}">
+                                                <p:ajax event="keyup" update="trocoPagar"/>
+                                            </p:inputText>
+                                            <h:outputLabel value="Troco" />
+                                            <h:outputLabel id="trocoPagar" 
+                                                           value="${vendaController.calcularTroco(pago.value)}"/>
+
+                                        </p:panelGrid>
+                                    </p:panel>
+                                </b:tab>
+
+
+                            </b:tabView>
+                            <b:panel>
+                                <b:row>
+                                    <b:column col-md="2">
+                                        <h:outputLabel value="Acréscimo: "/>
+                                    </b:column>
+                                    <b:column col-md="3">
+                                        <p:inputNumber value="#{vendaController.venda.valorAcrescimo}" symbol="R$ " >
+                                            <p:ajax event="change" update=":venda:resumoVenda"/>
+                                        </p:inputNumber>
+                                    </b:column>
+                                </b:row>
+                            </b:panel>
+                            <b:panel id="resumoVenda">
                                 
-                                <h:outputLabel value="Pontos disponíveis"/>
-                                <h:outputLabel id="labelPontoDisponivel" value="#{clienteController.calcularPontuacao()}"/>
-                                <h:outputLabel value="Premiação disponível"/>
-                                <h:outputLabel id="labelPremioDisponivel" value="#{clienteController.calcularPremiacao()}"/>
-                                <h:outputLabel value="Utilizar Prêmio?"/>
-                                <p:inputSwitch value="#{vendaController.utilizarCupomDesconto}" offLabel="Não" onLabel="Sim" valueChangeListener="#{vendaController.definirCupomDesconto()}"/>
-                                
-                            </p:panelGrid>
-                            <p:dataTable id="vendaProdutos" rowIndexVar="rowId" var="produto" value="${vendaController.venda.produtos}">
-                                <p:column headerText="Produto">
-                                    <h:outputText value="${produto.produto.descricao}" />
-                                </p:column>
-                                <p:column headerText="Valor unitário">
-                                    <h:outputText value="${produto.produto.valorUnitarioVenda}" />
-                                </p:column>
-                                <p:column headerText="Quantidade">
-                                    <p:inputText id="quantidadeProduto" value="#{vendaController.venda.produtos.get(rowId).quantidadeCompra}"  >
-                                        <p:ajax event="keyup" listener="#{vendaController.calcularDescontoProduto(rowId)}" update="subTotal :venda:valorTotalPanel"/>
-                                    </p:inputText>
-                                </p:column>
-                                <p:column headerText="% de desconto">
-                                    <p:inputText id="percentualDesconto" value="#{vendaController.venda.produtos.get(rowId).desconto}"  >
-                                        <p:ajax event="keyup" listener="#{vendaController.calcularDescontoProduto(rowId)}" update="subTotal :venda:valorTotalPanel"/>
-                                    </p:inputText>
-                                </p:column>
+                                <b:row>
+                                    <b:column col-md="2">
+                                        <h:outputLabel value="Valor total: "/>
+                                    </b:column>
+                                    <b:column col-md="3">
+                                        <h:outputLabel id="valorTotal" value="R$ #{vendaController.venda.calcularValorTotalSemDesconto()}" />
+                                    </b:column>
+                                </b:row>
+                                <b:row>
+                                    <b:column col-md="2">
+                                        <h:outputLabel value="Valor total com desconto: "/>
+                                    </b:column>
+                                    <b:column col-md="3">
+                                        <h:outputLabel id="valorTotalDesconto" value="R$ #{vendaController.venda.calcularValorFinal()}" />
+                                    </b:column>   
+                                </b:row>
+                            </b:panel>
+                            <f:facet name="footer" >
+                                <b:commandButton  value="Confirmar" action="#{vendaController.salvar()}" look="success"/>
+                            </f:facet>
 
-                                <p:column headerText="Subtotal">
-                                    <h:outputText id="subTotal" value="#{vendaController.venda.produtos.get(rowId).calcularValorComDesconto()}" />
-                                </p:column>
-                                <p:column>
-                                    <p:commandButton value="Apagar" icon="ui-icon-circle-close" actionListener="#{vendaController.removerProduto(rowId)}" update=":venda:nfVenda :venda:valorTotalPanel" />
-                                </p:column>
-                            </p:dataTable>
+                        </b:panel>
+                    </h:form>
+                </b:column>
+            </b:row>
 
-                        </p:panel>
-
-
-                    </p:tab>
-
-                    <p:tab id="formaPagamento" title="Forma de pagamento">
-                        <p:panel>
-                            <p:panelGrid columns="2">
-                                <h:outputLabel value="Forma de pagamento"/>
-                                <p:autoComplete id="acPagamento" 
-                                                value="#{vendaController.venda.formaPagamento}" 
-                                                itemValue="#{formaPagamento}" 
-                                                var="formaPagamento" 
-                                                itemLabel="#{formaPagamento.recuperarString()}" 
-                                                converter="formaPagamentoConverter" 
-                                                completeMethod="#{vendaController.filtrarFormasPagamento}" 
-                                                />
-                                <h:outputLabel value="Valor pago" />
-                                <p:inputText binding="${pago}">
-                                    <p:ajax event="keyup" update="trocoPagar"/>
-                                </p:inputText>
-                                <h:outputLabel value="Troco" />
-                                <h:outputLabel id="trocoPagar" 
-                                               value="${vendaController.calcularTroco(pago.value)}"/>
-                                <p:commandButton value="Confirmar" action="#{vendaController.salvar()}"/>
-                            </p:panelGrid>
-                        </p:panel>
-                    </p:tab>
-
-                </p:wizard>
-
-                <p:panelGrid id="valorTotalPanel" columns="2">
-                    <h:outputLabel value="Valor total: "/>
-                    <h:outputLabel id="valorTotal" value="#{vendaController.venda.calcularValorTotalSemDesconto()}" />
-                    <h:outputLabel value="Valor total com desconto: "/>
-                    <h:outputLabel id="valorTotalDesconto" value="#{vendaController.venda.calcularValorTotalComDesconto()}" />
-                </p:panelGrid>
-            </h:form>
-        </p:panel>
+        </b:container>
     </h:body>
 </html>
 

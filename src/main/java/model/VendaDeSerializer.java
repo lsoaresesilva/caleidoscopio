@@ -36,20 +36,26 @@ public class VendaDeSerializer implements JsonDeserializer<Venda> {
         final JsonObject jsonObject = (JsonObject)je;
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(VendaProduto.class, new VendaProdutoDeSerializer());
+        builder.registerTypeAdapter(ResgatePontosFidelidade.class, new ResgatePontosFidelidadeDeSerializer());
         Gson gson = builder.create();
         
         Venda v = new Venda();
         String vendaToken = jsonObject.get("token").getAsString();
         String usuarioToken = jsonObject.get("usuario_id").getAsString();
         Usuario u = (Usuario)Usuario.getByToken(usuarioToken);
+        String clienteToken = jsonObject.get("cliente_id").getAsString();
+        Cliente c = (Cliente)Cliente.getByToken(Cliente.class, clienteToken);
         String formaPagamento = jsonObject.get("formaPagamento").getAsString();
+        String resgatePontos = jsonObject.get("resgate_pontos").getAsString();
+        ResgatePontosFidelidade r = gson.fromJson(resgatePontos, ResgatePontosFidelidade.class);
         String dataCriacao = jsonObject.get("dataCriacao").getAsString();
         LocalDate data = LocalDate.parse(dataCriacao);
         v.setToken(vendaToken);
         v.setDataCriacao(data);
         v.setFormaPagamento(FormaPagamento.getByType(formaPagamento));
         v.setUsuario(u);
-        
+        v.setCliente(c);
+        v.setPontuacaoUtilizada(r);
         
         //String produtos = jsonObject.get("produtos").getAsString();
         

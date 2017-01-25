@@ -20,6 +20,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import model.Produto;
 import model.Venda;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
@@ -41,6 +42,7 @@ public class Model {
     @GeneratedValue(generator = "token_gen")
     @Expose
     private String token; 
+    @Expose
     public boolean ativo; // TODO alterar a sincronização para realizar apenas de itens ativos
     @Transient
     protected String nomeTabela; // Utilizado para gerenciar consultas em que o nome da tabela é necessário
@@ -126,19 +128,23 @@ public class Model {
         return session;
     } 
     
-    public boolean salvar() throws HibernateException{
-        
+    public boolean salvarOuAtualizar() throws HibernateException{
         if (!this.modelExiste()) {
-            Session session = abrirSessao();
-            session.beginTransaction();
-            session.save(this);
-            session.getTransaction().commit();
-            session.close();
-            return true;
+            return this.salvar();
+        }else{
+            return this.atualizar();
         }
-        
-        
-        return false;
+    }
+    
+    public boolean salvar() throws HibernateException {
+
+        Session session = abrirSessao();
+        session.beginTransaction();
+        session.save(this);
+        session.getTransaction().commit();
+        session.close();
+        return true;
+
     }
     
     public boolean atualizar() {
@@ -151,6 +157,8 @@ public class Model {
         
         return true;
     }
+    
+    
     
     public static List<Object> listarTodos(String nomeTabela){
         List<Object> resultado = null;

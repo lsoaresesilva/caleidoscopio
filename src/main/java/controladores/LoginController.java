@@ -41,7 +41,7 @@ public class LoginController {
             if (usuarioLogado != null) {
 
                 context.getExternalContext().getSessionMap().put("usuarioLogado", usuarioLogado);
-                context.addMessage(null, new FacesMessage("Success", "Login realizado com sucesso!"));
+                context.addMessage(null, new FacesMessage("Sucesso", "Login realizado com sucesso!"));
                 return "sys/index";
             } else {
 
@@ -55,6 +55,18 @@ public class LoginController {
         }
 
         return "";
+    }
+    
+    public String fazerLogout(){
+        FacesContext context = FacesContext.getCurrentInstance();
+        Usuario usuarioLogado = (Usuario)context.getExternalContext().getSessionMap().remove("usuarioLogado");
+        if( usuarioLogado == null ){
+            context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Problema ao sair do sistema."));
+        }else{
+            return "/Caleidoscopio/faces/login.xhtml";
+        }
+        
+        return "index";
     }
     
 }

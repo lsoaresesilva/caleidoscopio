@@ -5,14 +5,24 @@
  */
 package model;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Query;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import persistencia.Model;
+import static persistencia.Model.listarTodos;
 
 /**
  *
@@ -21,14 +31,27 @@ import persistencia.Model;
 @Entity
 public class Cliente extends Model implements Serializable{
     
+    @Expose
     private String nome;
+    @Expose
     private String email;
+    @Expose
     private String telefone;
-    private LocalDate dataAniversario;
+    private LocalDate dataNascimento;
+    @OneToMany(mappedBy = "cliente", targetEntity = ResgatePontosFidelidade.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ResgatePontosFidelidade> pontosUtilizados;
 
     public Cliente() {
         super();
         super.setNomeTabela("Cliente");
+    }
+    
+    public Cliente(String nome, String email, String telefone, LocalDate dataNascimento) {
+        this();
+        this.nome = nome;
+        this.email = email;
+        this.telefone = telefone;
+        this.dataNascimento = dataNascimento;
     }
     
     public static List<Cliente> pesquisarTodosCampos(String consulta) {
@@ -60,28 +83,13 @@ public class Cliente extends Model implements Serializable{
         }
 
     }
-    
-    public double calcularPremiacao(){
-        // Ter o total de pontuacao
-        double premio = 0.0;
-        double pontucao = calcularPontuacao();
-        // Verificar quanto de desconto é possível obter com aquele desconto
-        // Regra de cálculo: para cada 150 reais o cliente ganha 5 reais de desconto
-        if( pontucao > 150 )
-            premio = pontucao*0.03; // 5 reais de 150 representa 3%
-        
-        return premio;
+
+    public List<ResgatePontosFidelidade> getPontosUtilizados() {
+        return pontosUtilizados;
     }
-    
-    public double calcularPontuacao( ){
-        double pontuacao = 0.0;
-        List<Venda> vendasCliente = Venda.listarPorCliente(this);
-        for( int i = 0; i < vendasCliente.size(); i++ ){
-            pontuacao = pontuacao+vendasCliente.get(i).calcularValorTotalComDesconto();
-        }
-        // TODO acrescentar o fator multiplicador e subtrair do resgate
-        
-        return pontuacao;
+
+    public void setPontosUtilizados(List<ResgatePontosFidelidade> pontosUtilizados) {
+        this.pontosUtilizados = pontosUtilizados;
     }
 
     public String getNome() {
@@ -107,14 +115,85 @@ public class Cliente extends Model implements Serializable{
     public void setTelefone(String telefone) {
         this.telefone = telefone;
     }
-
-    public LocalDate getDataAniversario() {
-        return dataAniversario;
+    
+    public String getDataAniversarioFormatada(){
+        DateTimeFormatter formatter =
+                      DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return dataNascimento.format(formatter);
     }
 
-    public void setDataAniversario(LocalDate dataAniversario) {
-        this.dataAniversario = dataAniversario;
+    public LocalDate getDataNascimento() {
+        
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
     
+    public String toString(){
+        return this.nome;
+    }
+    
+     public static String listarTodosJson() {
+        List<Cliente> clientesCadastrados = (List<Cliente>)(Object)listarTodos("Cliente");
+        
+        GsonBuilder builder = new GsonBuilder();
+        //builder.registerTypeAdapter(ResgatePontosFidelidade.class, new ResgatePontosFidelidadeSerializer());
+        builder.excludeFieldsWithoutExposeAnnotation();
+        Gson gson = builder.create();
+        
+        String json = gson.toJson(clientesCadastrados);
+
+        return json;
+    }
+     
+    public String retornarPontuacaoFidelidade(){
+        return String.valueOf(Fidelidade.calcularPontuacao(this));
+    }
+    
+    public String retornarDescontoFidelidade(){
+        return String.valueOf(Fidelidade.calcularDescontoComSaldoPontosFidelidade(this));
+    }
+    
+    public HashMap<String, Double> calcularPontuacao(){
+         double pontuacao = Fidelidade.calcularPontuacao(this); 
+        double desconto = Fidelidade.calcularDescontoComSaldoPontosFidelidade(this);
+        HashMap<String, Double> resultado = new HashMap<String, Double>();
+        resultado.put("pontuacao", pontuacao);
+        resultado.put("desconto", desconto);
+        return resultado;
+    }
+     
+    public String retornarPontuacaoJSON(){
+        
+        Gson gson = new Gson();
+        String json = gson.toJson(calcularPontuacao());
+        return json;
+    }
+    
+    
+     
+     /*private static List<Cliente> listarTodosConversaoJSON(String nomeTabela){
+        List<Cliente> resultado = null;
+        try{
+            Session session = abrirSessao();
+            Query query = session.createQuery("from "+nomeTabela+" where ativo = :ativo"); //You will get Weayher object
+            query.setParameter("ativo", true);
+            resultado = query.getResultList(); //You are accessing  as list<WeatherModel>
+                    //.createCriteria(MyEntity.class).list();
+            if( resultado != null ){
+                for(int i = 0; i < resultado.size(); i++ ){
+                    Hibernate.initialize(resultado.get(i).getPontosUtilizados());
+                }
+            }
+            
+            session.close();
+        }catch(HibernateException he){
+            return null;
+        }
+        
+        return resultado;
+    }*/
     
 }

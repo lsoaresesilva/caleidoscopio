@@ -20,9 +20,6 @@ import persistencia.Model;
 @Entity
 public class Fornecedor extends Model implements Serializable{
     
-    /*@Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;*/
     private String nome;
     private String cnpj;
 
