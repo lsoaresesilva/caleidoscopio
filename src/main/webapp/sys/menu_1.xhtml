@@ -3,7 +3,8 @@
     xmlns:f="http://xmlns.jcp.org/jsf/core"
     xmlns:h="http://xmlns.jcp.org/jsf/html"
     xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-    xmlns:p="http://primefaces.org/ui">
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:b="http://bootsfaces.net/ui">
     
     <h:form>
         <p:menubar>
@@ -34,3 +35,15 @@
     </h:form>
 </ui:composition>
 
+
+<b:navbarLinks pull="right"><b:navLink value="    " href="#"></b:navLink></b:navbarLinks>
+                    <b:navbarLinks pull="right">
+                        <b:kebab>
+                            <b:listLinks>
+                                <b:navCommandLink value="Sair" action="#{loginController.fazerLogout()}"></b:navCommandLink>
+                                
+                            </b:listLinks>
+                        </b:kebab>
+                    </b:navbarLinks>
+
+<b:navCommandLink id="l" value="Lançamentos Financeiros" action="#{lfController.listar()}"></b:navCommandLink>

@@ -11,7 +11,9 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -175,6 +177,7 @@ public class Produto extends Model implements Serializable {
                 NodeList produto = produtoEment.getElementsByTagName("cProd");
                 NodeList codigoProdutoNode = produtoEment.getElementsByTagName("cProd");
                 String codigoProduto = codigoProdutoNode.item(0).getTextContent();
+                // TODO obter apenas o código e a categoria
                 Produto produtoBancoDados = Produto.getByCodigo(codigoProduto);
 
                 NodeList nomeProdutoNode = produtoEment.getElementsByTagName("xProd");
@@ -320,8 +323,22 @@ public class Produto extends Model implements Serializable {
 
             return produtosNfe;
         } catch (SAXException ex) {
+            StringWriter writer = new StringWriter();
+PrintWriter printWriter = new PrintWriter( writer );
+ex.printStackTrace( printWriter );
+printWriter.flush();
+
+String stackTrace = writer.toString();
+System.out.println(stackTrace);
             return null;
         } catch (IOException ex) {
+            StringWriter writer = new StringWriter();
+PrintWriter printWriter = new PrintWriter( writer );
+ex.printStackTrace( printWriter );
+printWriter.flush();
+
+String stackTrace = writer.toString();
+System.out.println(stackTrace);
             return null;
         } catch (ParserConfigurationException ex) {
             return null;

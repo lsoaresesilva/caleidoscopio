@@ -36,27 +36,26 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
  */
 @MappedSuperclass
 public class Model {
-    
+
     @Id
     @GenericGenerator(name = "token_gen", strategy = "persistencia.TokenGenerator")
     @GeneratedValue(generator = "token_gen")
     @Expose
-    private String token; 
+    private String token;
     @Expose
     public boolean ativo; // TODO alterar a sincronização para realizar apenas de itens ativos
     @Transient
     protected String nomeTabela; // Utilizado para gerenciar consultas em que o nome da tabela é necessário
     protected static SessionFactory sessionFactory = null;
-    
+
     static {
-        
+
     }
 
     public Model() {
         token = new String();
         ativo = true;
     }
-
 
     public String getNomeTabela() {
         return nomeTabela;
@@ -73,7 +72,7 @@ public class Model {
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
     }
-    
+
     public String getToken() {
         return token;
     }
@@ -81,19 +80,19 @@ public class Model {
     public void setToken(String token) {
         this.token = token;
     }
-    
-    public boolean excluir(){
-        if( !this.getToken().equals("")){ // significa que não está cadastrado no BD
+
+    public boolean excluir() {
+        if (!this.getToken().equals("")) { // significa que não está cadastrado no BD
             this.setAtivo(false);
             return this.atualizar();
-        }else{
+        } else {
             return false;
         }
-        
+
     }
-    
+
     // TODO ver como optimizar esta consulta
-    public boolean modelExiste(){
+    public boolean modelExiste() {
         try {
             // TODO fazer um override deste método em Produto para verificar não o token, mas o código do produto. Se já tiver código do produto, perguntar se o usuário deseja acrescentar na quantidade do estoque
             Session session = abrirSessao();
@@ -109,33 +108,33 @@ public class Model {
             //query.setString("key", instance.getKey() );
             //return (query.uniqueResult() != null);
             return false;
-        } catch (NoResultException nre ){
+        } catch (NoResultException nre) {
             return false;
-        } catch (NonUniqueResultException ne){
+        } catch (NonUniqueResultException ne) {
             return true;
         }
     }
-    
-    protected static Session abrirSessao(){
+
+    protected static Session abrirSessao() {
         if (sessionFactory == null) {
             final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                     .configure() // configures settings from hibernate.cfg.xml
                     .build();
             sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
-            
+
         }
         Session session = sessionFactory.openSession();
         return session;
-    } 
-    
-    public boolean salvarOuAtualizar() throws HibernateException{
+    }
+
+    public boolean salvarOuAtualizar() throws HibernateException {
         if (!this.modelExiste()) {
             return this.salvar();
-        }else{
+        } else {
             return this.atualizar();
         }
     }
-    
+
     public boolean salvar() throws HibernateException {
 
         Session session = abrirSessao();
@@ -146,7 +145,7 @@ public class Model {
         return true;
 
     }
-    
+
     public boolean atualizar() {
         // PROBLEMA: campos nao usados vem nulo
         Session session = abrirSessao();
@@ -154,54 +153,53 @@ public class Model {
         session.update(this);
         session.getTransaction().commit();
         session.close();
-        
+
         return true;
     }
-    
-    
-    
-    public static List<Object> listarTodos(String nomeTabela){
+
+    public static List<Object> listarTodos(String nomeTabela) {
         List<Object> resultado = null;
-        try{
+        try {
             Session session = abrirSessao();
-            Query query = session.createQuery("from "+nomeTabela+" where ativo = :ativo"); //You will get Weayher object
+            Query query = session.createQuery("from " + nomeTabela + " where ativo = :ativo"); //You will get Weayher object
             query.setParameter("ativo", true);
             resultado = query.getResultList(); //You are accessing  as list<WeatherModel>
-                    //.createCriteria(MyEntity.class).list();
-                    
+            //.createCriteria(MyEntity.class).list();
+
             session.close();
-        }catch(HibernateException he){
+        } catch (HibernateException he) {
             return null;
         }
-        
+
         return resultado;
     }
-    
+
     @Override
-    public boolean equals( Object v ){
-        Model objetoComparado = (Model)v;
-        
-        if( objetoComparado.getToken().equals(this.getToken()) )
+    public boolean equals(Object v) {
+        Model objetoComparado = (Model) v;
+        if (objetoComparado != null) {
+            if (objetoComparado.getToken().equals(this.getToken())) {
+                return true;
+            }
+        } else {
             return true;
+        }
         return false;
     }
 
-    public static Object getByToken(Class classe, String token){
+    public static Object getByToken(Class classe, String token) {
         Object model = null;
-        
-        try{
+
+        try {
             Session session = Model.abrirSessao();
             session.beginTransaction();
             model = session.get(classe, token);
             session.close();
-        }catch(HibernateException he){
+        } catch (HibernateException he) {
             return null;
         }
-        
+
         return model;
     }
-    
-    
-    
-    
+
 }

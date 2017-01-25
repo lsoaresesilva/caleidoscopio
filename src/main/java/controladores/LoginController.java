@@ -7,8 +7,12 @@
  */
 package controladores;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import model.Usuario;
 
@@ -39,16 +43,19 @@ public class LoginController {
             Usuario usuarioLogado = usuario.fazerLogin();
             
             if (usuarioLogado != null) {
+                ExternalContext externalContext = context.getExternalContext();
+                Map<String, Object> session = externalContext.getSessionMap();
 
-                context.getExternalContext().getSessionMap().put("usuarioLogado", usuarioLogado);
+                session.put("usuarioLogado", usuarioLogado);
                 context.addMessage(null, new FacesMessage("Sucesso", "Login realizado com sucesso!"));
-                return "sys/index";
+                return "sys/index?faces-redirect=true";
             } else {
 
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "Login ou senha inválidos."));
 
             }
         } catch (RuntimeException re) {
+            
             if (context != null) {
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro!", "O banco de dados está desconectado. Por gentileza entre em contato com o administrador."));
             }
