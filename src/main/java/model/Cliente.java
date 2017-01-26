@@ -23,7 +23,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import persistencia.Model;
 import static persistencia.Model.listarTodos;
-
+import javax.persistence.Transient;
 /**
  *
  * @author macbookair
@@ -40,6 +40,10 @@ public class Cliente extends Model implements Serializable{
     private LocalDate dataNascimento;
     @OneToMany(mappedBy = "cliente", targetEntity = ResgatePontosFidelidade.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResgatePontosFidelidade> pontosUtilizados;
+    @Transient
+    private Double pontuacaoFidelidade;
+    @Transient
+    private Double descontoPontuacaoFidelidade;
 
     public Cliente() {
         super();
@@ -52,6 +56,28 @@ public class Cliente extends Model implements Serializable{
         this.email = email;
         this.telefone = telefone;
         this.dataNascimento = dataNascimento;
+    }
+
+    public double getPontuacaoFidelidade() {
+        if( pontuacaoFidelidade == null ){
+            pontuacaoFidelidade = retornarPontuacaoFidelidade();
+        }
+        return pontuacaoFidelidade;
+    }
+
+    public void setPontuacaoFidelidade(double pontuacaoFidelidade) {
+        this.pontuacaoFidelidade = pontuacaoFidelidade;
+    }
+
+    public double getDescontoPontuacaoFidelidade() {
+        
+            descontoPontuacaoFidelidade = retornarDescontoFidelidade();
+        
+        return descontoPontuacaoFidelidade;
+    }
+
+    public void setDescontoPontuacaoFidelidade(double descontoPontuacaoFidelidade) {
+        this.descontoPontuacaoFidelidade = descontoPontuacaoFidelidade;
     }
     
     public static List<Cliente> pesquisarTodosCampos(String consulta) {
@@ -148,12 +174,12 @@ public class Cliente extends Model implements Serializable{
         return json;
     }
      
-    public String retornarPontuacaoFidelidade(){
-        return String.valueOf(Fidelidade.calcularPontuacao(this));
+    public double retornarPontuacaoFidelidade(){
+        return Fidelidade.calcularPontuacao(this);
     }
     
-    public String retornarDescontoFidelidade(){
-        return String.valueOf(Fidelidade.calcularDescontoComSaldoPontosFidelidade(this));
+    public double retornarDescontoFidelidade(){
+        return Fidelidade.calcularDesconto(pontuacaoFidelidade);
     }
     
     public HashMap<String, Double> calcularPontuacao(){

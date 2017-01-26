@@ -5,7 +5,7 @@
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       >
-    <p:dialog header="Informações do lançamento financeiro" widgetVar="lfDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+    <p:dialog id="dlgDetalhesLancamentos" header="Informações do lançamento financeiro" widgetVar="lfDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
         <h:form id="dialogLancamentosFinanceirosDetalhes">
             <p:outputPanel id="detalhesLancamentoFinanceiro" style="text-align:center;" >
 
@@ -29,6 +29,7 @@
 
             </p:outputPanel>
         </h:form>
+        <p:ajax event="close" listener="#{lfController.gerenciarFechamentoDialog}"/>
     </p:dialog> 
 </ui:composition>
 

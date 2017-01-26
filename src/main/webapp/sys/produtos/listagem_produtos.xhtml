@@ -12,72 +12,72 @@
     <h:body>
         <b:container>
 
-        <ui:include src="../menu.xhtml" />
-        <p:panel>
-            <p:growl id="growl" showDetail="true" sticky="true" />  
-            <h:form id="listagemProdutos">
-                <p:panel id="operacoesProdutos">
-                <p:commandButton value="Inserir" update=":dialogProdutosDetalhes:detalhesProduto" oncomplete="PF('produtoDialog').show()" />
-                </p:panel>
-                <p:dataTable  id="produtosCadastrados" var="produto" 
-                             value="#{produtoController.listarProdutos()}" 
-                             widgetVar="produtosWidget"
-                             rows="10"
-                             emptyMessage="Nenhum produto localizado."
-                             sortBy="#{produto.descricao}"
-                             paginator="true"
-                             rowKey="#{produto.id}"
-                             
-                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-                             rowsPerPageTemplate="25,50,100"
-                             filteredValue="#{produtoController.filteredProducts}"
-                             >
-                    <f:facet name="header">
-                        <p:outputPanel>
-                            <h:outputText value="Pesquisar em todos os campos: " />
-                            <p:inputText id="globalFilter" onkeyup="PF('produtosWidget').filter()" style="width:150px" placeholder="Palavra-chave"/>
-                        </p:outputPanel>
-                    </f:facet>
-                    <p:column width="40%" filterStyle="width:100%" headerText="Descrição" filterMatchMode="contains" filterBy="#{produto.descricao}">
-                        <h:outputText value="#{produto.descricao}" />
-                    </p:column>
-                    <p:column width="30%" filterStyle="width:100%" headerText="Fornecedor" filterBy="#{produto.fornecedor.nome}" filterMatchMode="contains">
-                        <h:outputText value="#{produto.fornecedor.nome}" />
-                    </p:column>
+            <ui:include src="../menu.xhtml" />
+            <p:panel>
+                <p:growl id="growl" showDetail="true" sticky="true" />  
+                <h:form id="listagemProdutos">
+                    <p:panel id="operacoesProdutos">
+                        <p:commandButton value="Inserir" update=":dialogProdutosDetalhes:detalhesProduto :listagemProdutos:produtosCadastrados" oncomplete="PF('produtoDialog').show()" />
+                    </p:panel>
+                    <p:dataTable  id="produtosCadastrados" var="produto" 
+                                  value="#{produtoController.produtosCadastrados}" 
+                                  widgetVar="produtosWidget"
+                                  rows="10"
+                                  emptyMessage="Nenhum produto localizado."
+                                  sortBy="#{produto.descricao}"
+                                  paginator="true"
+                                  rowKey="#{produto.id}"
 
-                    <p:column width="10%" headerText="Valor">
-                        <h:outputText value="#{produto.valorUnitarioVenda}" />
-                    </p:column>
-                    <p:column width="10%" filterBy="#{produto.quantidadeEstoque}" headerText="Estoque" filterFunction="#{produtoController.filtrarPorEstoque}">
-                        <f:facet name="filter">
-                            <p:selectOneMenu title="Selecione o estoque" value="#{produtoController.valorSelecionadoEstoque}" widgetVar="valorEstoqueSelecionado" label="Selecione um valor" onchange="PF('produtosWidget').filter()" panelStyle="width:125px" >
-                                <f:selectItems value="#{produtoController.valoresEstoque}" />
-                            </p:selectOneMenu>
+                                  paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                  rowsPerPageTemplate="25,50,100"
+                                  filteredValue="#{produtoController.filteredProducts}"
+                                  >
+                        <f:facet name="header">
+                            <p:outputPanel>
+                                <h:outputText value="Pesquisar em todos os campos: " />
+                                <p:inputText id="globalFilter" onkeyup="PF('produtosWidget').filter()" style="width:150px" placeholder="Palavra-chave"/>
+                            </p:outputPanel>
                         </f:facet>
-                        <h:outputText value="#{produto.quantidadeEstoque}" />
-                    </p:column>
-                    <p:column width="10%" style="text-align: center">
-                        <p:commandButton update=":dialogProdutosDetalhes:detalhesProduto" oncomplete="PF('produtoDialog').show()" icon="ui-icon-search" title="Visualizar">
-                            <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
-                        </p:commandButton>
-                    
-                        <p:commandButton update=":listagemProdutos:produtosCadastrados" action="#{produtoController.excluirProduto()}" icon="ui-icon-closethick" title="Excluir">
-                            <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
-                            <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o produto?" icon="ui-icon-alert" />
-                        </p:commandButton>
-                    </p:column>
-                </p:dataTable>
-                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
-                    <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" >
-                        
-                    </p:commandButton>
-                    <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
-                </p:confirmDialog>
-                
-            </h:form>
+                        <p:column width="40%" filterStyle="width:100%" headerText="Descrição" filterMatchMode="contains" filterBy="#{produto.descricao}">
+                            <h:outputText value="#{produto.descricao}" />
+                        </p:column>
+                        <p:column width="30%" filterStyle="width:100%" headerText="Fornecedor" filterBy="#{produto.fornecedor.nome}" filterMatchMode="contains">
+                            <h:outputText value="#{produto.fornecedor.nome}" />
+                        </p:column>
 
-            <ui:include src="visualizar_produto.xhtml" />
-        </p:panel>
+                        <p:column width="10%" headerText="Valor">
+                            <h:outputText value="#{produto.valorUnitarioVenda}" />
+                        </p:column>
+                        <p:column width="10%" filterBy="#{produto.quantidadeEstoque}" headerText="Estoque" filterFunction="#{produtoController.filtrarPorEstoque}">
+                            <f:facet name="filter">
+                                <p:selectOneMenu title="Selecione o estoque" value="#{produtoController.valorSelecionadoEstoque}" widgetVar="valorEstoqueSelecionado" label="Selecione um valor" onchange="PF('produtosWidget').filter()" panelStyle="width:125px" >
+                                    <f:selectItems value="#{produtoController.valoresEstoque}" />
+                                </p:selectOneMenu>
+                            </f:facet>
+                            <h:outputText value="#{produto.quantidadeEstoque}" />
+                        </p:column>
+                        <p:column width="10%" style="text-align: center">
+                            <p:commandButton id="btnAtualizarProduto" update=":dialogProdutosDetalhes:detalhesProduto :listagemProdutos:produtosCadastrados" oncomplete="PF('produtoDialog').show()" icon="ui-icon-search" title="Visualizar">
+                                <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
+                            </p:commandButton>
+                            
+                            <p:commandButton update=":listagemProdutos:produtosCadastrados" action="#{produtoController.excluirProduto()}" icon="ui-icon-closethick" title="Excluir">
+                                <f:setPropertyActionListener value="#{produto}" target="#{produtoController.produto}" />
+                                <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o produto?" icon="ui-icon-alert" />
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                        <p:commandButton value="Sim" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" >
+
+                        </p:commandButton>
+                        <p:commandButton value="Não" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                    </p:confirmDialog>
+
+                </h:form>
+
+                <ui:include src="visualizar_produto.xhtml" />
+            </p:panel>
         </b:container>
     </h:body>
 </html>

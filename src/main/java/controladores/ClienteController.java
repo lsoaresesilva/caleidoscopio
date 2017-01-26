@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
@@ -40,19 +41,40 @@ import org.hibernate.HibernateException;
 public class ClienteController {
     private Cliente cliente;
     private List<Cliente> filteredClientes;
+    private List<Cliente> clientesCadastrados;
 
     public ClienteController() {
         cliente = new Cliente();
     }
     
+    @PostConstruct
+    public void init(){
+        clientesCadastrados = listarClientesCadastrados();
+    }
     
+    public void gerenciarFechamentoDialog(){
+        this.cliente = new Cliente();
+    }
+    
+    public void gerenciarAtualizacaoClientes(){
+        this.cliente = new Cliente();
+        clientesCadastrados = listarClientesCadastrados();
+    }
+
+    public List<Cliente> getClientesCadastrados() {
+        return clientesCadastrados;
+    }
+
+    public void setClientesCadastrados(List<Cliente> clientesCadastrados) {
+        this.clientesCadastrados = clientesCadastrados;
+    }
     
     public List<Cliente> filtrar(String consulta){
         List<Cliente> clientes = Cliente.pesquisarTodosCampos(consulta);
         return clientes;
     }
     
-    public List<Cliente> listar(){
+    public List<Cliente> listarClientesCadastrados(){
         return (List<Cliente>)(Object)Cliente.listarTodos("Cliente");
     }
     
@@ -61,10 +83,13 @@ public class ClienteController {
         if(this.cliente.excluir() ){
             if (context != null) 
                     context.addMessage(null, new FacesMessage("Operação com sucesso", "Cliente excluído com sucesso!"));
+            gerenciarAtualizacaoClientes();
         }else{
             if (context != null) 
                     context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível excluir o cliente. Tente novamente."));
         }
+        
+        this.cliente = new Cliente();
     }
     
     public void salvarOuAtualizar(){
@@ -75,12 +100,14 @@ public class ClienteController {
             if (context != null) {
                 context.addMessage(null, new FacesMessage("Sucesso", "Cliente atualizado com sucesso!"));
             }
-            this.cliente = new Cliente();
+            gerenciarAtualizacaoClientes();
         } else {
             if (context != null) {
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível atualizar o cliente. Tente novamente."));
             }
         }
+        
+        
 
     }
 

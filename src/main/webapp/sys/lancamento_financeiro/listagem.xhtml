@@ -16,7 +16,7 @@
             <p:growl id="growl" showDetail="true" sticky="true" />  
             <h:form id="listagemLancamentosFinanceiros">
                 <p:panel id="operacoesLancamentosFinanceiros">
-                <p:commandButton value="Inserir" update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro" oncomplete="PF('lfDialog').show()" />
+                <p:commandButton value="Inserir" update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro :listagemLancamentosFinanceiros:lancamentosFinanceirosCadastrados" oncomplete="PF('lfDialog').show()" />
                 </p:panel>
                 <p:dataTable  id="lancamentosFinanceirosCadastrados" var="lf" 
                               value="#{lfController.listarLancamentos()}" 
@@ -42,10 +42,10 @@
                     </p:column>
                     
                     <p:column width="5%" style="text-align: center">
-                        <p:commandButton update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro" oncomplete="PF('lfDialog').show()" icon="ui-icon-search" title="Visualizar">
+                        <p:commandButton id="btnAtualizarLancamento" update=":dialogLancamentosFinanceirosDetalhes:detalhesLancamentoFinanceiro :listagemLancamentosFinanceiros:lancamentosFinanceirosCadastrados" oncomplete="PF('lfDialog').show()" icon="ui-icon-search" title="Visualizar">
                             <f:setPropertyActionListener value="#{lf}" target="#{lfController.lancamentoSelecionado}" />
                         </p:commandButton>
-                    
+                        
                         <p:commandButton update=":listagemLancamentosFinanceiros:lancamentosFinanceirosCadastrados" action="#{lfController.excluir()}" icon="ui-icon-closethick" title="Excluir">
                             <f:setPropertyActionListener value="#{lf}" target="#{lfController.lancamentoSelecionado}" />
                             <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o lançamento?" icon="ui-icon-alert" />

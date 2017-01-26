@@ -10,16 +10,16 @@
         <title>Gerenciamento de clientes</title>
     </h:head>
     <h:body>
-        <b:container>
+        <b:container id="container">
         <ui:include src="../menu.xhtml" />
-        <p:panel>
+        <p:panel id="gerenciamentoClientes">
             <p:growl id="growl" showDetail="true" sticky="true" />  
             <h:form id="listagemClientes">
                 <p:panel id="operacoesClientes">
-                <p:commandButton value="Inserir" update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" />
+                    <p:commandButton process="gerenciamentoClientes" value="Inserir" update=":dialogClienteDetalhes:detalhesCliente :listagemClientes:clientesCadastrados" oncomplete="PF('clienteDialog').show()" />
                 </p:panel>
                 <p:dataTable  id="clientesCadastrados" var="cliente" 
-                             value="#{clienteController.listar()}" 
+                              value="#{clienteController.clientesCadastrados}" 
                              widgetVar="clientesWidget"
                              rows="10"
                              emptyMessage="Nenhum cliente cadastrado."
@@ -45,18 +45,16 @@
                         <h:outputText value="#{cliente.telefone}" />
                     </p:column>
                     <p:column width="5%" headerText="Pontos">
-                        
-                        <h:outputText value="#{cliente.retornarPontuacaoFidelidade()}" />
-                    
+                        <h:outputText value="#{cliente.pontuacaoFidelidade}" />
                     </p:column>
                     <p:column width="5%" headerText="Desconto">
-                        <h:outputText value="#{cliente.retornarDescontoFidelidade()}" />
+                        <h:outputText value="#{cliente.descontoPontuacaoFidelidade}" />
                     </p:column>
                     <p:column width="5%" style="text-align: center">
                         <p:commandButton update=":dialogClienteDetalhes:detalhesCliente" oncomplete="PF('clienteDialog').show()" icon="ui-icon-search" title="Visualizar">
                             <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
                         </p:commandButton>
-                    
+                        
                         <p:commandButton update=":listagemClientes:clientesCadastrados" action="#{clienteController.excluir()}" icon="ui-icon-closethick" title="Excluir">
                             <f:setPropertyActionListener value="#{cliente}" target="#{clienteController.cliente}" />
                             <p:confirm header="Confirmação de exclusão" message="Tem certeza que deseja excluir o cliente?" icon="ui-icon-alert" />

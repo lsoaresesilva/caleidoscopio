@@ -1,10 +1,16 @@
 <ui:composition 
     xmlns="http://www.w3.org/1999/xhtml"
-    xmlns:f="http://xmlns.jcp.org/jsf/core"
-    xmlns:h="http://xmlns.jcp.org/jsf/html"
-    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-    xmlns:p="http://primefaces.org/ui">
-        <p:dialog header="Informações do cliente" widgetVar="clienteDialog" modal="true" showEffect="fade" hideEffect="fade" resizable="false">
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    
+        <p:dialog id="dlgDetalhesCliente" 
+                  header="Informações do cliente" 
+                  widgetVar="clienteDialog" 
+                  modal="true" 
+                  showEffect="fade" 
+                  hideEffect="fade" resizable="false"
+                  position="center">
                 <h:form id="dialogClienteDetalhes">
                 <p:outputPanel id="detalhesCliente" style="text-align:center;" >
                     <p:tabView>
@@ -21,7 +27,8 @@
                                     <h:outputLabel value="Data de aniversário"/>
                                     <h:inputText value="#{clienteController.cliente.dataNascimento}" 
                                                  converter="localDateConverter"/>
-                                    <p:commandButton value="Salvar" action="#{clienteController.salvarOuAtualizar()}" oncomplete="PF('clienteDialog').hide()" update="growl :listagemClientes:clientesCadastrados"/>
+                                    <p:commandButton id="btnAtualizarCliente" value="Salvar" action="#{clienteController.salvarOuAtualizar()}" oncomplete="PF('clienteDialog').hide()" update="growl :listagemClientes:clientesCadastrados"/>
+                                    
                                 </p:panelGrid>
                             
                         </p:tab>
@@ -29,6 +36,8 @@
                     </p:tabView>
                 </p:outputPanel>
                     </h:form>
+            <p:ajax event="close" listener="#{clienteController.gerenciarFechamentoDialog}"/>
             </p:dialog> 
+    
 </ui:composition>
 

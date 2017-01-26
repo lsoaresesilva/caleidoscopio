@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
@@ -20,6 +21,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import model.CategoriaProduto;
+import model.Cliente;
 import model.FormaPagamento;
 import model.LancamentoFinanceiro;
 import model.Produto;
@@ -39,9 +41,28 @@ public class ProdutoController {
     String valorSelecionadoEstoque; //TODO ver como nào precisar dessa variável no filtro select
     
     private List<Produto> filteredProducts;
+    private List<Produto> produtosCadastrados;
+    
+    @PostConstruct
+    public void init(){
+        produtosCadastrados = listarProdutos();
+    }
     
     public void gerenciarFechamentoDialog(){
         this.produto = new Produto();
+    }
+    
+    public void gerenciarAtualizacaoProdutos(){
+        this.produto = new Produto();
+        produtosCadastrados = listarProdutos();
+    }
+
+    public List<Produto> getProdutosCadastrados() {
+        return produtosCadastrados;
+    }
+
+    public void setProdutosCadastrados(List<Produto> produtosCadastrados) {
+        this.produtosCadastrados = produtosCadastrados;
     }
 
     public String getValorSelecionadoEstoque() {
@@ -89,13 +110,12 @@ public class ProdutoController {
             if (context != null) {
                 context.addMessage(null, new FacesMessage("Sucesso", "Produto atualizado com sucesso!"));
             }
-            this.produto = new Produto();
+            gerenciarAtualizacaoProdutos();
         } else {
             if (context != null) {
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível atualizar o produto. Tente novamente."));
             }
         }
-        
     }
     
     
@@ -127,6 +147,7 @@ public class ProdutoController {
         if(this.getProduto().excluir() ){
             if (context != null) 
                     context.addMessage(null, new FacesMessage("Operação com sucesso", "Produto excluído com sucesso!"));
+            gerenciarAtualizacaoProdutos();
         }else{
             if (context != null) 
                     context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro", "Não foi possível excluir o produto. Tente novamente."));
